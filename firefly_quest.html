@@ -212,10 +212,25 @@ function registerPainPress() {
     });
 }
 
-rightController.addEventListener("triggerdown", registerPainPress);
+rightController.addEventListener("triggerdown", function() {
 
+    // Voor de test: trigger start de countdown
+    if (!experimentRunning && !countdownRunning) {
+        beginCountdown();
+        return;
+    }
+
+    // Tijdens de test: trigger registreert pijn
+    if (experimentRunning) {
+        registerPainPress();
+    }
+});
+
+// A-knop mag ook blijven werken als startknop
 rightController.addEventListener("abuttondown", function() {
-    if (!experimentRunning && !countdownRunning) beginCountdown();
+    if (!experimentRunning && !countdownRunning) {
+        beginCountdown();
+    }
 });
 
 startButton.addEventListener("click", function() {
@@ -223,11 +238,7 @@ startButton.addEventListener("click", function() {
 });
 
 function beginCountdown() {
-    if (!controllerConnected) {
-        statusText.innerText = "Geen rechter Quest-controller gevonden";
-        vrInfoText.setAttribute("value", "Geen controller gevonden.");
-        return;
-    }
+
 
     countdownRunning = true;
     experimentFinished = false;
@@ -303,9 +314,27 @@ function animate() {
     const now = performance.now();
 
     if (!experimentRunning) {
-        requestAnimationFrame(animate);
-        return;
+
+    // Voor de start: laat de virtuele hand al
+    // de echte rechter controller volgen.
+    if (controllerConnected) {
+
+        const controllerPosition =
+            getControllerWorldPosition();
+
+        cursor.object3D.position.set(
+            controllerPosition.x,
+            controllerPosition.y,
+            controllerPosition.z
+        );
+
+        controllerText.innerText =
+            "Rechter controller: tracking actief";
     }
+
+    requestAnimationFrame(animate);
+    return;
+}
 
     const elapsed = (now - startTime) / 1000;
 
