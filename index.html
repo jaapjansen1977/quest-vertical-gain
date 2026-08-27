@@ -10,7 +10,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            cursor: none;
+            font-family: Arial, sans-serif;
         }
 
         #info {
@@ -20,7 +20,6 @@
             z-index: 9999;
             background: rgba(255,255,255,0.94);
             padding: 14px;
-            font-family: Arial, sans-serif;
             border-radius: 8px;
             min-width: 260px;
         }
@@ -28,9 +27,9 @@
         button {
             margin-top: 10px;
             margin-right: 6px;
-            padding: 9px 14px;
-            cursor: pointer;
+            padding: 10px 14px;
             font-size: 14px;
+            cursor: pointer;
         }
 
         #statusText {
@@ -40,16 +39,24 @@
 
         #countdown {
             position: fixed;
-            left: 50%;
-            top: 45%;
-            transform: translate(-50%, -50%);
-            z-index: 10000;
-            font-family: Arial, sans-serif;
-            font-size: 90px;
+            inset: 0;
+            z-index: 20000;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(0,0,0,0.25);
+
+            font-size: 110px;
             font-weight: bold;
             color: white;
-            text-shadow: 0 0 12px black;
-            display: none;
+
+            text-shadow:
+                0 0 8px black,
+                0 0 20px black;
+
+            pointer-events: none;
         }
     </style>
 </head>
@@ -66,15 +73,19 @@
         Klaar voor start
     </div>
 
-    <div>
-        Klik op Start. Daarna heb je 3 seconden
-        om de muis in de gewenste startpositie te zetten.
+    <div id="instructionText">
+        Klik op Start experiment.
     </div>
 
     <hr>
 
-    <div id="timeText">Tijd: 0.0 s</div>
-    <div id="gainText">Gain: 1.00</div>
+    <div id="timeText">
+        Tijd: 0.0 s / 40 s
+    </div>
+
+    <div id="gainText">
+        Gain: 1.00
+    </div>
 
     <div id="realYText">
         Werkelijke Y: 1.500
@@ -104,7 +115,8 @@
 
 </div>
 
-<a-scene>
+
+<a-scene id="scene">
 
     <a-sky color="#AFCFE8"></a-sky>
 
@@ -136,6 +148,7 @@
 
 </a-scene>
 
+
 <script>
 
 const target = document.querySelector("#target");
@@ -145,6 +158,8 @@ const startButton = document.querySelector("#startButton");
 const saveButton = document.querySelector("#saveButton");
 
 const statusText = document.querySelector("#statusText");
+const instructionText = document.querySelector("#instructionText");
+
 const countdown = document.querySelector("#countdown");
 
 const timeText = document.querySelector("#timeText");
@@ -155,9 +170,9 @@ const errorText = document.querySelector("#errorText");
 const meanErrorText = document.querySelector("#meanErrorText");
 
 
-// =============================
+// ======================================================
 // INSTELLINGEN
-// =============================
+// ======================================================
 
 const referenceX = 0;
 const referenceY = 1.5;
@@ -168,141 +183,148 @@ const mouseScaleY = 0.003;
 const experimentDuration = 40;
 
 
-// =============================
+// ======================================================
 // STATUS
-// =============================
-
-let mouseX = window.innerWidth / 2;
-let mouseY = window.innerHeight / 2;
-
-let calibrationMouseX = mouseX;
-let calibrationMouseY = mouseY;
+// ======================================================
 
 let experimentRunning = false;
 let countdownRunning = false;
 let experimentFinished = false;
 
 let startTime = 0;
+let lastLogTime = 0;
+
+// Dit zijn nu de "echte" gesimuleerde controllercoördinaten
+let realX = referenceX;
+let realY = referenceY;
 
 let data = [];
 
 let errorSum = 0;
 let errorCount = 0;
 
-let lastLogTime = 0;
 
-
-// =============================
-// MUIS
-// =============================
+// ======================================================
+// POINTER LOCK / RELATIEVE MUISBEWEGING
+// ======================================================
 
 document.addEventListener("mousemove", function(event) {
-    mouseX = event.clientX;
-    mouseY = event.clientY;
+
+    // Alleen beweging gebruiken tijdens experiment
+    if (!experimentRunning) {
+        return;
+    }
+
+    realX += event.movementX * mouseScaleX;
+
+    realY -= event.movementY * mouseScaleY;
 });
 
 
-// =============================
+// ======================================================
 // GAIN
-// =============================
+// ======================================================
 
-function getGain(timeSeconds) {
+function getGain(t) {
 
-    if (timeSeconds < 10) return 1.00;
-    if (timeSeconds < 20) return 0.95;
-    if (timeSeconds < 30) return 0.90;
+    if (t < 10) return 1.00;
+
+    if (t < 20) return 0.95;
+
+    if (t < 30) return 0.90;
+
     return 0.85;
 }
 
 
-// =============================
-// START + COUNTDOWN
-// =============================
+// ======================================================
+// COUNTDOWN
+// ======================================================
 
-startButton.addEventListener("click", function() {
-
-    if (countdownRunning || experimentRunning) {
-        return;
-    }
-
-    data = [];
-    errorSum = 0;
-    errorCount = 0;
-    experimentFinished = false;
-
-    saveButton.disabled = true;
-
-    statusText.innerText =
-        "Ga naar de startpositie";
+function showCountdown() {
 
     countdownRunning = true;
 
-    let count = 3;
+    countdown.style.display = "flex";
 
-    countdown.innerText = count;
-    countdown.style.display = "block";
+    statusText.innerText =
+        "Kalibratie";
 
-    const countdownTimer = setInterval(function() {
+    instructionText.innerText =
+        "Niet bewegen. De startpositie wordt ingesteld.";
 
-        count--;
+    countdown.innerText = "3";
 
-        if (count > 0) {
+    setTimeout(function() {
 
-            countdown.innerText = count;
-
-        } else {
-
-            clearInterval(countdownTimer);
-
-            countdown.innerText = "START";
-
-            setTimeout(function() {
-
-                countdown.style.display = "none";
-
-                // HIER vindt de echte kalibratie plaats
-                calibrationMouseX = mouseX;
-                calibrationMouseY = mouseY;
-
-                startTime = performance.now();
-                lastLogTime = startTime;
-
-                experimentRunning = true;
-                countdownRunning = false;
-
-                statusText.innerText =
-                    "Experiment loopt";
-
-                startButton.disabled = true;
-
-            }, 500);
-        }
+        countdown.innerText = "2";
 
     }, 1000);
 
-});
+    setTimeout(function() {
+
+        countdown.innerText = "1";
+
+    }, 2000);
+
+    setTimeout(function() {
+
+        countdown.innerText = "START";
+
+    }, 3000);
+
+    setTimeout(function() {
+
+        countdown.style.display = "none";
+
+        // ==================================================
+        // HIER WORDT DE POSITIE EXACT OP HET MIDDEN GEZET
+        // ==================================================
+
+        realX = referenceX;
+        realY = referenceY;
+
+        startTime = performance.now();
+        lastLogTime = startTime;
+
+        errorSum = 0;
+        errorCount = 0;
+
+        data = [];
+
+        experimentRunning = true;
+        countdownRunning = false;
+        experimentFinished = false;
+
+        statusText.innerText =
+            "Experiment loopt";
+
+        instructionText.innerText =
+            "Volg de rode bol zo nauwkeurig mogelijk.";
+
+        startButton.disabled = true;
+
+    }, 3500);
+}
 
 
-// =============================
-// EXPERIMENT STOPPEN
-// =============================
+// ======================================================
+// START
+// ======================================================
 
-function stopExperiment() {
+startButton.addEventListener("click", function() {
 
-    experimentRunning = false;
-    experimentFinished = true;
+    if (experimentRunning || countdownRunning) {
+        return;
+    }
 
-    statusText.innerText =
-        "Experiment klaar";
+    // Cursor verdwijnt en muisbeweging wordt relatief
+    document.body.requestPointerLock();
 
-    startButton.disabled = false;
+    // Rode en gele bol exact samen
+    realX = referenceX;
+    realY = referenceY;
 
-    startButton.innerText =
-        "Opnieuw starten";
-
-    saveButton.disabled = false;
-
-    // target en cursor terug naar startpositie
     target.object3D.position.set(
         referenceX,
         referenceY,
@@ -314,20 +336,53 @@ function stopExperiment() {
         referenceY,
         -2.8
     );
+
+    saveButton.disabled = true;
+
+    showCountdown();
+});
+
+
+// ======================================================
+// STOP
+// ======================================================
+
+function stopExperiment() {
+
+    experimentRunning = false;
+    experimentFinished = true;
+
+    if (document.pointerLockElement) {
+        document.exitPointerLock();
+    }
+
+    statusText.innerText =
+        "Experiment klaar";
+
+    instructionText.innerText =
+        "Je kunt de meetgegevens nu opslaan.";
+
+    startButton.disabled = false;
+
+    startButton.innerText =
+        "Opnieuw starten";
+
+    saveButton.disabled = false;
 }
 
 
-// =============================
+// ======================================================
 // ANIMATIE
-// =============================
+// ======================================================
 
 function animate() {
 
     const now = performance.now();
 
-    // ---------------------------------
-    // NIET LOPENDE FASE
-    // ---------------------------------
+
+    // --------------------------------------------------
+    // VOOR START
+    // --------------------------------------------------
 
     if (!experimentRunning) {
 
@@ -347,42 +402,56 @@ function animate() {
         }
 
         requestAnimationFrame(animate);
+
         return;
     }
 
 
-    // ---------------------------------
+    // --------------------------------------------------
     // TIJD
-    // ---------------------------------
+    // --------------------------------------------------
 
     const elapsed =
         (now - startTime) / 1000;
 
+
+    // --------------------------------------------------
+    // EINDE NA 40 SECONDEN
+    // --------------------------------------------------
+
     if (elapsed >= experimentDuration) {
 
         timeText.innerText =
-            "Tijd: 40.0 s";
+            "Tijd: 40.0 s / 40 s";
 
         stopExperiment();
 
         requestAnimationFrame(animate);
+
         return;
     }
 
 
-    const gain = getGain(elapsed);
+    // --------------------------------------------------
+    // GAIN
+    // --------------------------------------------------
+
+    const gain =
+        getGain(elapsed);
 
 
-    // ---------------------------------
+    // --------------------------------------------------
     // TARGET
-    // ---------------------------------
+    // --------------------------------------------------
 
     const targetX =
-        1.0 * Math.sin(elapsed * 0.7);
+        1.0 *
+        Math.sin(elapsed * 0.7);
 
     const targetY =
         referenceY +
-        0.7 * Math.sin(elapsed * 1.0);
+        0.7 *
+        Math.sin(elapsed * 1.0);
 
     target.object3D.position.set(
         targetX,
@@ -391,34 +460,19 @@ function animate() {
     );
 
 
-    // ---------------------------------
-    // MUIS T.O.V. KALIBRATIE
-    // ---------------------------------
+    // --------------------------------------------------
+    // VISUELE CONTROLLERPOSITIE
+    // --------------------------------------------------
 
-    const deltaMouseX =
-        mouseX - calibrationMouseX;
+    // horizontaal: 1 op 1
+    const visualX =
+        realX;
 
-    const deltaMouseY =
-        calibrationMouseY - mouseY;
-
-    const realX =
-        referenceX +
-        deltaMouseX * mouseScaleX;
-
-    const realY =
-        referenceY +
-        deltaMouseY * mouseScaleY;
-
-
-    // ---------------------------------
-    // VISUELE POSITIE
-    // ---------------------------------
-
-    const visualX = realX;
-
+    // verticaal: gain
     const visualY =
         referenceY +
-        gain * (realY - referenceY);
+        gain *
+        (realY - referenceY);
 
     cursor.object3D.position.set(
         visualX,
@@ -427,9 +481,9 @@ function animate() {
     );
 
 
-    // ---------------------------------
+    // --------------------------------------------------
     // TRACKINGFOUT
-    // ---------------------------------
+    // --------------------------------------------------
 
     const dx =
         targetX - visualX;
@@ -438,21 +492,26 @@ function animate() {
         targetY - visualY;
 
     const errorMeters =
-        Math.sqrt(dx * dx + dy * dy);
+        Math.sqrt(
+            dx * dx +
+            dy * dy
+        );
 
     const errorCm =
         errorMeters * 100;
 
     errorSum += errorCm;
+
     errorCount++;
 
     const meanErrorCm =
-        errorSum / errorCount;
+        errorSum /
+        errorCount;
 
 
-    // ---------------------------------
+    // --------------------------------------------------
     // DISPLAY
-    // ---------------------------------
+    // --------------------------------------------------
 
     timeText.innerText =
         "Tijd: " +
@@ -482,15 +541,16 @@ function animate() {
         " cm";
 
 
-    // ---------------------------------
-    // LOGGING ~ 60 Hz
-    // ---------------------------------
+    // --------------------------------------------------
+    // DATA LOGGEN ~60 Hz
+    // --------------------------------------------------
 
     if (now - lastLogTime >= 16) {
 
         data.push({
 
             time: elapsed,
+
             gain: gain,
 
             target_x: targetX,
@@ -503,20 +563,12 @@ function animate() {
             visual_y: visualY,
 
             error_m: errorMeters,
-            error_cm: errorCm,
-
-            mouse_x: mouseX,
-            mouse_y: mouseY,
-
-            calibration_mouse_x:
-                calibrationMouseX,
-
-            calibration_mouse_y:
-                calibrationMouseY
+            error_cm: errorCm
         });
 
         lastLogTime = now;
     }
+
 
     requestAnimationFrame(animate);
 }
@@ -524,9 +576,9 @@ function animate() {
 animate();
 
 
-// =============================
+// ======================================================
 // CSV OPSLAAN
-// =============================
+// ======================================================
 
 saveButton.addEventListener("click", function() {
 
@@ -535,16 +587,15 @@ saveButton.addEventListener("click", function() {
         "target_x,target_y," +
         "real_x,real_y," +
         "visual_x,visual_y," +
-        "error_m,error_cm," +
-        "mouse_x,mouse_y," +
-        "calibration_mouse_x," +
-        "calibration_mouse_y\n";
+        "error_m,error_cm\n";
+
 
     data.forEach(function(row) {
 
         csv +=
 
             row.time.toFixed(4) + "," +
+
             row.gain.toFixed(2) + "," +
 
             row.target_x.toFixed(4) + "," +
@@ -557,25 +608,25 @@ saveButton.addEventListener("click", function() {
             row.visual_y.toFixed(4) + "," +
 
             row.error_m.toFixed(4) + "," +
-            row.error_cm.toFixed(2) + "," +
-
-            row.mouse_x.toFixed(1) + "," +
-            row.mouse_y.toFixed(1) + "," +
-
-            row.calibration_mouse_x.toFixed(1) + "," +
-            row.calibration_mouse_y.toFixed(1) +
+            row.error_cm.toFixed(2) +
 
             "\n";
     });
 
+
     const blob =
         new Blob(
             [csv],
-            { type: "text/csv;charset=utf-8;" }
+            {
+                type:
+                "text/csv;charset=utf-8;"
+            }
         );
+
 
     const url =
         URL.createObjectURL(blob);
+
 
     const link =
         document.createElement("a");
