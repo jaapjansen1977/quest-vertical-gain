@@ -1,1 +1,1150 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Appel-pluktaak</title>
+
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            background: rgba(255,255,255,0.93);
+            padding: 14px;
+            border-radius: 10px;
+            min-width: 285px;
+        }
+
+        button {
+            margin-top: 10px;
+            margin-right: 6px;
+            padding: 10px 14px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #statusText {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        #countdown {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(0,0,0,0.20);
+
+            font-size: 110px;
+            font-weight: bold;
+            color: white;
+
+            text-shadow:
+                0 0 8px black,
+                0 0 20px black;
+
+            pointer-events: none;
+        }
+
+        #successMessage {
+            position: fixed;
+            left: 50%;
+            top: 25%;
+            transform: translate(-50%, -50%);
+            z-index: 15000;
+
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+
+            text-shadow: 0 0 10px black;
+
+            display: none;
+
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="countdown">3</div>
+
+<div id="successMessage">
+    Geplukt!
+</div>
+
+<div id="info">
+
+    <div><strong>Appel-pluktaak</strong></div>
+
+    <div id="statusText">
+        Klaar voor start
+    </div>
+
+    <div id="instructionText">
+        Beweeg je hand naar de appel en klik om hem te plukken.
+    </div>
+
+    <hr>
+
+    <div id="timeText">
+        Tijd: 0.0 s / 40 s
+    </div>
+
+    <div id="gainText">
+        Gain: 1.00
+    </div>
+
+    <div id="scoreText">
+        Geplukt: 0
+    </div>
+
+    <div id="missText">
+        Missers: 0
+    </div>
+
+    <div id="errorText">
+        Afstand tot appel: 0.0 cm
+    </div>
+
+    <hr>
+
+    <button id="startButton">
+        Start experiment
+    </button>
+
+    <button id="saveButton" disabled>
+        CSV opslaan
+    </button>
+
+</div>
+
+
+<a-scene
+    fog="type: linear; color: #b8d6dd; near: 8; far: 25">
+
+    <!-- lucht -->
+    <a-sky color="#bfe0ea"></a-sky>
+
+    <!-- licht -->
+    <a-entity
+        light="type: ambient; color: #ffffff; intensity: 0.9">
+    </a-entity>
+
+    <a-entity
+        light="type: directional; color: #fffbe5; intensity: 0.7"
+        position="-3 6 2">
+    </a-entity>
+
+    <!-- gras -->
+    <a-plane
+        position="0 0 -6"
+        rotation="-90 0 0"
+        width="30"
+        height="30"
+        color="#609b4d">
+    </a-plane>
+
+    <!-- pad -->
+    <a-plane
+        position="0 0.01 -6"
+        rotation="-90 0 0"
+        width="3"
+        height="18"
+        color="#a9875f">
+    </a-plane>
+
+
+    <!-- LINKER BOOM -->
+
+    <a-cylinder
+        position="-3.0 1.4 -5"
+        radius="0.25"
+        height="2.8"
+        color="#70452b">
+    </a-cylinder>
+
+    <a-sphere
+        position="-3.0 3.1 -5"
+        radius="1.35"
+        color="#467f3e">
+    </a-sphere>
+
+    <a-sphere
+        position="-3.7 2.8 -5"
+        radius="0.8"
+        color="#4d8b43">
+    </a-sphere>
+
+    <a-sphere
+        position="-2.3 2.8 -5"
+        radius="0.8"
+        color="#4d8b43">
+    </a-sphere>
+
+
+    <!-- RECHTER BOOM -->
+
+    <a-cylinder
+        position="3.0 1.4 -5"
+        radius="0.25"
+        height="2.8"
+        color="#70452b">
+    </a-cylinder>
+
+    <a-sphere
+        position="3.0 3.1 -5"
+        radius="1.35"
+        color="#467f3e">
+    </a-sphere>
+
+    <a-sphere
+        position="3.7 2.8 -5"
+        radius="0.8"
+        color="#4d8b43">
+    </a-sphere>
+
+    <a-sphere
+        position="2.3 2.8 -5"
+        radius="0.8"
+        color="#4d8b43">
+    </a-sphere>
+
+
+    <!-- VERRE BOMEN -->
+
+    <a-cylinder
+        position="-6 1.5 -11"
+        radius="0.3"
+        height="3"
+        color="#69422c">
+    </a-cylinder>
+
+    <a-sphere
+        position="-6 3.3 -11"
+        radius="1.5"
+        color="#3e7137">
+    </a-sphere>
+
+    <a-cylinder
+        position="6 1.5 -12"
+        radius="0.3"
+        height="3"
+        color="#69422c">
+    </a-cylinder>
+
+    <a-sphere
+        position="6 3.3 -12"
+        radius="1.5"
+        color="#3e7137">
+    </a-sphere>
+
+
+    <!-- APPEL -->
+    <a-entity
+        id="target"
+        position="0 1.5 -3">
+
+        <a-sphere
+            id="appleBody"
+            radius="0.13"
+            color="#d62f2f">
+        </a-sphere>
+
+        <a-cylinder
+            position="0 0.15 0"
+            radius="0.012"
+            height="0.10"
+            color="#634229">
+        </a-cylinder>
+
+        <a-sphere
+            position="0.07 0.17 0"
+            scale="0.12 0.03 0.06"
+            color="#38853b">
+        </a-sphere>
+
+    </a-entity>
+
+
+    <!-- HAND -->
+    <a-entity
+        id="cursor"
+        position="0 1.5 -2.8">
+
+        <a-sphere
+            id="handGlow"
+            radius="0.16"
+            color="#ffe6b4"
+            opacity="0.15"
+            transparent="true">
+        </a-sphere>
+
+        <!-- palm -->
+        <a-sphere
+            radius="0.08"
+            color="#f2c28b">
+        </a-sphere>
+
+        <!-- wijsvinger -->
+        <a-box
+            position="0.11 0.05 0"
+            width="0.14"
+            height="0.04"
+            depth="0.04"
+            color="#f2c28b">
+        </a-box>
+
+    </a-entity>
+
+
+    <a-camera position="0 1.6 0"></a-camera>
+
+</a-scene>
+
+
+<script>
+
+// ======================================================
+// ELEMENTEN
+// ======================================================
+
+const target =
+    document.querySelector("#target");
+
+const cursor =
+    document.querySelector("#cursor");
+
+const appleBody =
+    document.querySelector("#appleBody");
+
+const handGlow =
+    document.querySelector("#handGlow");
+
+const startButton =
+    document.querySelector("#startButton");
+
+const saveButton =
+    document.querySelector("#saveButton");
+
+const statusText =
+    document.querySelector("#statusText");
+
+const instructionText =
+    document.querySelector("#instructionText");
+
+const countdown =
+    document.querySelector("#countdown");
+
+const successMessage =
+    document.querySelector("#successMessage");
+
+const timeText =
+    document.querySelector("#timeText");
+
+const gainText =
+    document.querySelector("#gainText");
+
+const scoreText =
+    document.querySelector("#scoreText");
+
+const missText =
+    document.querySelector("#missText");
+
+const errorText =
+    document.querySelector("#errorText");
+
+
+// ======================================================
+// INSTELLINGEN
+// ======================================================
+
+const referenceX = 0;
+const referenceY = 1.5;
+
+const mouseScaleX = 0.003;
+const mouseScaleY = 0.003;
+
+const experimentDuration = 40;
+
+// maximale afstand om te kunnen plukken
+const pluckDistance = 0.18;
+
+
+// ======================================================
+// STATUS
+// ======================================================
+
+let experimentRunning = false;
+let countdownRunning = false;
+let experimentFinished = false;
+
+let startTime = 0;
+let lastLogTime = 0;
+
+let realX = referenceX;
+let realY = referenceY;
+
+let visualX = referenceX;
+let visualY = referenceY;
+
+let targetX = referenceX;
+let targetY = referenceY;
+
+let currentError = 0;
+
+let appleNumber = 1;
+
+let score = 0;
+let misses = 0;
+
+let appleStartTime = 0;
+
+let data = [];
+
+
+// ======================================================
+// HULPFUNCTIE
+// ======================================================
+
+function clamp(value, min, max) {
+
+    return Math.max(
+        min,
+        Math.min(max, value)
+    );
+}
+
+
+// ======================================================
+// MUIS
+// ======================================================
+
+document.addEventListener(
+    "mousemove",
+    function(event) {
+
+        if (!experimentRunning) {
+            return;
+        }
+
+        realX +=
+            event.movementX *
+            mouseScaleX;
+
+        realY -=
+            event.movementY *
+            mouseScaleY;
+
+        realX =
+            clamp(realX, -1.8, 1.8);
+
+        realY =
+            clamp(realY, 0.5, 2.5);
+    }
+);
+
+
+// ======================================================
+// GAIN
+// ======================================================
+
+function getGain(t) {
+
+    if (t < 10) return 1.00;
+
+    if (t < 20) return 0.95;
+
+    if (t < 30) return 0.90;
+
+    return 0.85;
+}
+
+
+// ======================================================
+// NIEUWE APPEL
+// ======================================================
+
+function newApple() {
+
+    // willekeurige positie binnen bereik
+
+    targetX =
+        -1.1 +
+        Math.random() * 2.2;
+
+    targetY =
+        0.9 +
+        Math.random() * 1.2;
+
+    target.object3D.position.set(
+        targetX,
+        targetY,
+        -3
+    );
+
+    appleStartTime =
+        performance.now();
+
+    appleNumber++;
+}
+
+
+// ======================================================
+// POGING OM TE PLUKKEN
+// ======================================================
+
+document.addEventListener(
+    "mousedown",
+    function(event) {
+
+        if (!experimentRunning) {
+            return;
+        }
+
+        const now =
+            performance.now();
+
+        const elapsed =
+            (now - startTime) / 1000;
+
+        const gain =
+            getGain(elapsed);
+
+
+        if (currentError <= pluckDistance) {
+
+            // =========================
+            // SUCCES
+            // =========================
+
+            score++;
+
+            const reachTime =
+                (now - appleStartTime) /
+                1000;
+
+            data.push({
+
+                event: "pluck",
+
+                time: elapsed,
+
+                gain: gain,
+
+                apple: appleNumber,
+
+                target_x: targetX,
+                target_y: targetY,
+
+                real_x: realX,
+                real_y: realY,
+
+                visual_x: visualX,
+                visual_y: visualY,
+
+                error_cm:
+                    currentError * 100,
+
+                reach_time:
+                    reachTime,
+
+                score: score,
+                misses: misses
+            });
+
+
+            scoreText.innerText =
+                "Geplukt: " +
+                score;
+
+
+            successMessage.style.display =
+                "block";
+
+
+            appleBody.setAttribute(
+                "scale",
+                "0.4 0.4 0.4"
+            );
+
+
+            setTimeout(function() {
+
+                successMessage.style.display =
+                    "none";
+
+                appleBody.setAttribute(
+                    "scale",
+                    "1 1 1"
+                );
+
+                newApple();
+
+            }, 250);
+
+
+        } else {
+
+            // =========================
+            // MISSER
+            // =========================
+
+            misses++;
+
+            missText.innerText =
+                "Missers: " +
+                misses;
+
+
+            data.push({
+
+                event: "miss",
+
+                time: elapsed,
+
+                gain: gain,
+
+                apple: appleNumber,
+
+                target_x: targetX,
+                target_y: targetY,
+
+                real_x: realX,
+                real_y: realY,
+
+                visual_x: visualX,
+                visual_y: visualY,
+
+                error_cm:
+                    currentError * 100,
+
+                reach_time: "",
+
+                score: score,
+                misses: misses
+            });
+        }
+
+    }
+);
+
+
+// ======================================================
+// COUNTDOWN
+// ======================================================
+
+function showCountdown() {
+
+    countdownRunning = true;
+
+    countdown.style.display =
+        "flex";
+
+    statusText.innerText =
+        "Kalibratie";
+
+    instructionText.innerText =
+        "De hand start in het midden.";
+
+    countdown.innerText =
+        "3";
+
+
+    setTimeout(function() {
+
+        countdown.innerText =
+            "2";
+
+    }, 1000);
+
+
+    setTimeout(function() {
+
+        countdown.innerText =
+            "1";
+
+    }, 2000);
+
+
+    setTimeout(function() {
+
+        countdown.innerText =
+            "START";
+
+    }, 3000);
+
+
+    setTimeout(function() {
+
+        countdown.style.display =
+            "none";
+
+        realX =
+            referenceX;
+
+        realY =
+            referenceY;
+
+        startTime =
+            performance.now();
+
+        lastLogTime =
+            startTime;
+
+        score = 0;
+        misses = 0;
+
+        appleNumber = 0;
+
+        data = [];
+
+        experimentRunning =
+            true;
+
+        countdownRunning =
+            false;
+
+        experimentFinished =
+            false;
+
+        scoreText.innerText =
+            "Geplukt: 0";
+
+        missText.innerText =
+            "Missers: 0";
+
+        statusText.innerText =
+            "Experiment loopt";
+
+        instructionText.innerText =
+            "Beweeg naar de appel en klik om te plukken.";
+
+        startButton.disabled =
+            true;
+
+        newApple();
+
+    }, 3500);
+}
+
+
+// ======================================================
+// START
+// ======================================================
+
+startButton.addEventListener(
+    "click",
+    function() {
+
+        if (
+            experimentRunning ||
+            countdownRunning
+        ) {
+            return;
+        }
+
+        document.body.requestPointerLock();
+
+        realX =
+            referenceX;
+
+        realY =
+            referenceY;
+
+        cursor.object3D.position.set(
+            referenceX,
+            referenceY,
+            -2.8
+        );
+
+        saveButton.disabled =
+            true;
+
+        showCountdown();
+    }
+);
+
+
+// ======================================================
+// STOP
+// ======================================================
+
+function stopExperiment() {
+
+    experimentRunning =
+        false;
+
+    experimentFinished =
+        true;
+
+    if (
+        document.pointerLockElement
+    ) {
+
+        document.exitPointerLock();
+    }
+
+    statusText.innerText =
+        "Experiment klaar";
+
+    instructionText.innerText =
+        "Je kunt de data nu opslaan.";
+
+    startButton.disabled =
+        false;
+
+    startButton.innerText =
+        "Opnieuw starten";
+
+    saveButton.disabled =
+        false;
+}
+
+
+// ======================================================
+// ANIMATIE
+// ======================================================
+
+function animate() {
+
+    const now =
+        performance.now();
+
+
+    if (!experimentRunning) {
+
+        requestAnimationFrame(
+            animate
+        );
+
+        return;
+    }
+
+
+    const elapsed =
+        (now - startTime) /
+        1000;
+
+
+    if (
+        elapsed >=
+        experimentDuration
+    ) {
+
+        timeText.innerText =
+            "Tijd: 40.0 s / 40 s";
+
+        stopExperiment();
+
+        requestAnimationFrame(
+            animate
+        );
+
+        return;
+    }
+
+
+    const gain =
+        getGain(elapsed);
+
+
+    // =========================
+    // VISUELE HAND
+    // =========================
+
+    visualX =
+        realX;
+
+    visualY =
+        referenceY +
+        gain *
+        (
+            realY -
+            referenceY
+        );
+
+
+    cursor.object3D.position.set(
+        visualX,
+        visualY,
+        -2.8
+    );
+
+
+    // =========================
+    // AFSTAND TOT APPEL
+    // =========================
+
+    const dx =
+        targetX -
+        visualX;
+
+    const dy =
+        targetY -
+        visualY;
+
+    currentError =
+        Math.sqrt(
+            dx * dx +
+            dy * dy
+        );
+
+
+    const errorCm =
+        currentError *
+        100;
+
+
+    // =========================
+    // NABIJHEIDSFEEDBACK
+    // =========================
+
+    if (
+        currentError <=
+        pluckDistance
+    ) {
+
+        handGlow.setAttribute(
+            "opacity",
+            "0.35"
+        );
+
+        appleBody.setAttribute(
+            "color",
+            "#ff5050"
+        );
+
+    } else {
+
+        handGlow.setAttribute(
+            "opacity",
+            "0.15"
+        );
+
+        appleBody.setAttribute(
+            "color",
+            "#d62f2f"
+        );
+    }
+
+
+    // =========================
+    // DISPLAY
+    // =========================
+
+    timeText.innerText =
+        "Tijd: " +
+        elapsed.toFixed(1) +
+        " s / 40 s";
+
+    gainText.innerText =
+        "Gain: " +
+        gain.toFixed(2);
+
+    errorText.innerText =
+        "Afstand tot appel: " +
+        errorCm.toFixed(1) +
+        " cm";
+
+
+    // =========================
+    // CONTINUE LOGGING ~60 Hz
+    // =========================
+
+    if (
+        now -
+        lastLogTime >=
+        16
+    ) {
+
+        data.push({
+
+            event: "frame",
+
+            time: elapsed,
+
+            gain: gain,
+
+            apple: appleNumber,
+
+            target_x: targetX,
+            target_y: targetY,
+
+            real_x: realX,
+            real_y: realY,
+
+            visual_x: visualX,
+            visual_y: visualY,
+
+            error_cm: errorCm,
+
+            reach_time: "",
+
+            score: score,
+            misses: misses
+        });
+
+        lastLogTime =
+            now;
+    }
+
+
+    requestAnimationFrame(
+        animate
+    );
+}
+
+
+animate();
+
+
+// ======================================================
+// CSV
+// ======================================================
+
+saveButton.addEventListener(
+    "click",
+    function() {
+
+        let csv =
+
+            "event," +
+            "time_s," +
+            "gain," +
+            "apple," +
+            "target_x," +
+            "target_y," +
+            "real_x," +
+            "real_y," +
+            "visual_x," +
+            "visual_y," +
+            "error_cm," +
+            "reach_time_s," +
+            "score," +
+            "misses\n";
+
+
+        data.forEach(
+            function(row) {
+
+                csv +=
+
+                    row.event + "," +
+
+                    Number(row.time)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.gain)
+                        .toFixed(2) +
+                    "," +
+
+                    row.apple +
+                    "," +
+
+                    Number(row.target_x)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.target_y)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.real_x)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.real_y)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.visual_x)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.visual_y)
+                        .toFixed(4) +
+                    "," +
+
+                    Number(row.error_cm)
+                        .toFixed(2) +
+                    "," +
+
+                    row.reach_time +
+                    "," +
+
+                    row.score +
+                    "," +
+
+                    row.misses +
+                    "\n";
+            }
+        );
+
+
+        const blob =
+            new Blob(
+                [csv],
+                {
+                    type:
+                    "text/csv;charset=utf-8;"
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+        link.href =
+            url;
+
+        link.download =
+            "appel_pluktaak.csv";
+
+
+        document.body.appendChild(
+            link
+        );
+
+        link.click();
+
+
+        document.body.removeChild(
+            link
+        );
+
+
+        URL.revokeObjectURL(
+            url
+        );
+    }
+);
+
+</script>
+
+</body>
+</html>
