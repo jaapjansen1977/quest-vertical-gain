@@ -387,7 +387,7 @@ function getGain(t) {
 // PIJNKLIK REGISTREREN
 // ======================================================
 
-painButton.addEventListener("click", function() {
+function registerPainPress() {
 
     if (!experimentRunning) {
         return;
@@ -419,6 +419,22 @@ painButton.addEventListener("click", function() {
 
         pain_press: totalPainPresses
     });
+}
+
+
+// toetsenbord: P = pijn
+document.addEventListener("keydown", function(event) {
+
+    if (event.code === "KeyP") {
+        registerPainPress();
+    }
+
+});
+
+
+// knop blijft óók werken, voor testdoeleinden
+painButton.addEventListener("click", function() {
+    registerPainPress();
 });
     
 // ======================================================
