@@ -140,7 +140,9 @@
 <div id="painRateText">
     Pijnfrequentie: 0.00 /s
 </div>
-
+<div id="painCountText">
+    Aantal pijndrukken: 0
+</div>
 </div>
 
 <a-scene
@@ -289,6 +291,7 @@ const startButton = document.querySelector("#startButton");
 const saveButton = document.querySelector("#saveButton");
 const painButton = document.querySelector("#painButton");
 const painRateText = document.querySelector("#painRateText");
+const painCountText = document.querySelector("#painCountText");
 
 const statusText = document.querySelector("#statusText");
 const instructionText = document.querySelector("#instructionText");
@@ -399,6 +402,8 @@ function registerPainPress() {
 
     painPressTimes.push(elapsed);
     totalPainPresses++;
+    painCountText.innerText =
+    "Aantal pijndrukken: " + totalPainPresses;
 
     data.push({
         event: "pain_press",
@@ -425,7 +430,7 @@ function registerPainPress() {
 // toetsenbord: P = pijn
 document.addEventListener("keydown", function(event) {
 
-    if (event.code === "KeyP") {
+    if (event.code === "KeyP" && !event.repeat) {
         registerPainPress();
     }
 
@@ -716,20 +721,76 @@ saveButton.addEventListener("click", function() {
         "error_m,error_cm," +
         "pain_press\n";
 
+
     data.forEach(function(row) {
+
         csv +=
-            row.time.toFixed(4) + "," +
-            row.gain.toFixed(2) + "," +
-            row.target_x.toFixed(4) + "," +
-            row.target_y.toFixed(4) + "," +
-            row.real_x.toFixed(4) + "," +
-            row.real_y.toFixed(4) + "," +
-            row.visual_x.toFixed(4) + "," +
-            row.visual_y.toFixed(4) + "," +
-            row.error_m.toFixed(4) + "," +
-            row.error_cm.toFixed(2) +
+
+            (row.event || "frame") + "," +
+
+            Number(row.time).toFixed(4) + "," +
+
+            Number(row.gain).toFixed(2) + "," +
+
+            Number(row.target_x).toFixed(4) + "," +
+            Number(row.target_y).toFixed(4) + "," +
+
+            Number(row.real_x).toFixed(4) + "," +
+            Number(row.real_y).toFixed(4) + "," +
+
+            Number(row.visual_x).toFixed(4) + "," +
+            Number(row.visual_y).toFixed(4) + "," +
+
+            (
+                row.error_m === "" ||
+                row.error_m === undefined
+                ? ""
+                : Number(row.error_m).toFixed(4)
+            ) + "," +
+
+            (
+                row.error_cm === "" ||
+                row.error_cm === undefined
+                ? ""
+                : Number(row.error_cm).toFixed(2)
+            ) + "," +
+
+            (
+                row.pain_press === undefined
+                ? ""
+                : row.pain_press
+            ) +
+
             "\n";
     });
+
+
+    const blob = new Blob(
+        [csv],
+        {
+            type: "text/csv;charset=utf-8;"
+        }
+    );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "vuurvliegje_volgtaak.csv";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+});
 
     const blob = new Blob(
         [csv],
