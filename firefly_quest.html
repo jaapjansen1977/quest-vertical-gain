@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vuurvliegje-volgtaak Quest</title>
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <style>
+        body { margin:0; overflow:hidden; font-family:Arial,sans-serif; background:#0b1320; }
+        #info { position:fixed; top:20px; left:20px; z-index:9999; background:rgba(12,22,28,.88); color:white; padding:14px; border-radius:10px; min-width:310px; }
+        button { margin-top:10px; margin-right:6px; padding:10px 14px; font-size:14px; cursor:pointer; border:none; border-radius:8px; }
+        #startButton { background:#7bd389; }
+        #saveButton { background:#d8dbe2; }
+        #statusText { font-weight:bold; margin-bottom:8px; }
+    </style>
+</head>
+<body>
+<div id="info">
+    <div><strong>Vuurvliegje-volgtaak — Quest</strong></div>
+    <div id="statusText">Open de pagina op de Quest en ga naar VR.</div>
+    <div id="instructionText">In VR: druk op A om te starten. Trigger registreert pijn.</div>
+    <hr>
+    <div id="controllerText">Rechter controller: nog niet gevonden</div>
+    <div id="timeText">Tijd: 0.0 s / 40 s</div>
+    <div id="gainText">Gain: 1.00</div>
+    <div id="realYText">Werkelijke Y: --</div>
+    <div id="visualYText">Getoonde Y: --</div>
+    <hr>
+    <div id="errorText"><strong>Trackingfout: --</strong></div>
+    <div id="meanErrorText">Gemiddelde fout: --</div>
+    <div id="painCountText">Aantal pijndrukken: 0</div>
+    <button id="startButton">Start test op laptop</button>
+    <button id="saveButton" disabled>CSV opslaan</button>
+</div>
+
+<a-scene id="scene" fog="type: linear; color: #132433; near: 6; far: 18" renderer="antialias: true; colorManagement: true">
+    <a-sky color="#102235"></a-sky>
+    <a-entity light="type: ambient; color: #9db7c6; intensity: 0.75"></a-entity>
+    <a-entity light="type: directional; color: #dce9f5; intensity: 0.45" position="-2 4 1"></a-entity>
+
+    <a-plane position="0 0 -3" rotation="-90 0 0" width="26" height="26" color="#2f5f38"></a-plane>
+    <a-plane position="0 0.01 -3" rotation="-90 0 0" width="4" height="10" color="#6b5b43"></a-plane>
+
+    <a-sphere position="-6 1.2 -12" radius="3.0" color="#20382b"></a-sphere>
+    <a-sphere position="0 1.4 -13" radius="3.5" color="#1c3327"></a-sphere>
+    <a-sphere position="6 1.1 -12" radius="3.0" color="#21372a"></a-sphere>
+
+    <a-cylinder position="-3 1.2 -4" radius="0.15" height="2.4" color="#6a4128"></a-cylinder>
+    <a-cone position="-3 2.8 -4" radius-bottom="1.0" radius-top="0.1" height="2.2" color="#2c6d3b"></a-cone>
+    <a-cylinder position="-4.5 1.3 -6" radius="0.17" height="2.6" color="#6a4128"></a-cylinder>
+    <a-cone position="-4.5 3.0 -6" radius-bottom="1.1" radius-top="0.1" height="2.4" color="#2e7440"></a-cone>
+    <a-cylinder position="-2.2 1.1 -7.5" radius="0.14" height="2.2" color="#6a4128"></a-cylinder>
+    <a-cone position="-2.2 2.6 -7.5" radius-bottom="0.9" radius-top="0.1" height="2.0" color="#2b6a3b"></a-cone>
+
+    <a-cylinder position="3 1.2 -4.5" radius="0.15" height="2.4" color="#6a4128"></a-cylinder>
+    <a-cone position="3 2.8 -4.5" radius-bottom="1.0" radius-top="0.1" height="2.2" color="#2c6d3b"></a-cone>
+    <a-cylinder position="4.6 1.35 -6.8" radius="0.18" height="2.7" color="#6a4128"></a-cylinder>
+    <a-cone position="4.6 3.1 -6.8" radius-bottom="1.15" radius-top="0.1" height="2.4" color="#327442"></a-cone>
+    <a-cylinder position="2.0 1.1 -8" radius="0.14" height="2.2" color="#6a4128"></a-cylinder>
+    <a-cone position="2.0 2.6 -8" radius-bottom="0.9" radius-top="0.1" height="2.0" color="#2a6638"></a-cone>
+
+    <a-sphere position="-1.8 0.35 -4.5" radius="0.35" color="#295936"></a-sphere>
+    <a-sphere position="1.9 0.35 -5.2" radius="0.38" color="#2a5d37"></a-sphere>
+    <a-sphere position="-2.6 0.3 -6.0" radius="0.30" color="#234d2f"></a-sphere>
+    <a-sphere position="2.8 0.3 -6.2" radius="0.32" color="#234d2f"></a-sphere>
+
+    <a-entity id="target" position="0 1.5 -3">
+        <a-sphere id="fireflyGlow" radius="0.18" color="#ffd54a" opacity="0.30" transparent="true"></a-sphere>
+        <a-sphere id="fireflyBody" radius="0.07" color="#ffe35a" material="shader: standard; emissive: #ffd54a; emissiveIntensity: 1.8"></a-sphere>
+        <a-sphere position="0.05 0.03 0.03" radius="0.025" color="#fff6c7" material="shader: standard; emissive: #fff6c7; emissiveIntensity: 2.0"></a-sphere>
+        <a-entity id="fireflyLight" light="type: point; color: #ffd85e; intensity: 1.2; distance: 3"></a-entity>
+    </a-entity>
+
+    <a-entity id="cursor" position="0 1.5 -2.8">
+        <a-sphere id="handGlow" radius="0.16" color="#ffe7b6" opacity="0.15" transparent="true"></a-sphere>
+        <a-sphere radius="0.08" color="#f2c28b"></a-sphere>
+        <a-box position="0.11 0.05 0" width="0.14" height="0.04" depth="0.04" color="#f2c28b"></a-box>
+        <a-box position="0.02 -0.07 0" rotation="0 0 35" width="0.08" height="0.035" depth="0.035" color="#eab77f"></a-box>
+    </a-entity>
+
+    <a-entity id="rightController" oculus-touch-controls="hand: right; model: false"></a-entity>
+
+    <a-entity id="vrHud" position="0 2.45 -2.6">
+        <a-plane width="2.7" height="0.52" color="#0c161c" opacity="0.76"></a-plane>
+        <a-text id="vrStatusText" value="A = starten | Trigger = pijn" align="center" position="0 0.10 0.01" width="2.35" color="#ffffff"></a-text>
+        <a-text id="vrInfoText" value="Wacht op rechter controller..." align="center" position="0 -0.10 0.01" width="2.15" color="#fff4a8"></a-text>
+    </a-entity>
+
+    <a-text id="vrCountdown" value="" visible="false" align="center" position="0 1.55 -2.35" width="6" color="#fff4a8"></a-text>
+
+    <a-camera position="0 1.6 0"></a-camera>
+</a-scene>
+
+<script>
+const target = document.querySelector("#target");
+const cursor = document.querySelector("#cursor");
+const rightController = document.querySelector("#rightController");
+
+const fireflyBody = document.querySelector("#fireflyBody");
+const fireflyGlow = document.querySelector("#fireflyGlow");
+const fireflyLight = document.querySelector("#fireflyLight");
+const handGlow = document.querySelector("#handGlow");
+
+const startButton = document.querySelector("#startButton");
+const saveButton = document.querySelector("#saveButton");
+const statusText = document.querySelector("#statusText");
+const instructionText = document.querySelector("#instructionText");
+const controllerText = document.querySelector("#controllerText");
+const timeText = document.querySelector("#timeText");
+const gainText = document.querySelector("#gainText");
+const realYText = document.querySelector("#realYText");
+const visualYText = document.querySelector("#visualYText");
+const errorText = document.querySelector("#errorText");
+const meanErrorText = document.querySelector("#meanErrorText");
+const painCountText = document.querySelector("#painCountText");
+const vrStatusText = document.querySelector("#vrStatusText");
+const vrInfoText = document.querySelector("#vrInfoText");
+const vrCountdown = document.querySelector("#vrCountdown");
+
+const referenceX = 0;
+const referenceY = 1.5;
+const referenceZ = -2.8;
+const experimentDuration = 40;
+const minX = -1.8;
+const maxX = 1.8;
+const minY = 0.55;
+const maxY = 2.45;
+
+let experimentRunning = false;
+let countdownRunning = false;
+let experimentFinished = false;
+let controllerConnected = false;
+let startTime = 0;
+let lastLogTime = 0;
+let controllerReference = new THREE.Vector3();
+
+let realX = referenceX;
+let realY = referenceY;
+let realZ = referenceZ;
+let visualX = referenceX;
+let visualY = referenceY;
+let visualZ = referenceZ;
+
+let data = [];
+let errorSum = 0;
+let errorCount = 0;
+let painPressTimes = [];
+let totalPainPresses = 0;
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function getControllerWorldPosition() {
+    const p = new THREE.Vector3();
+    rightController.object3D.getWorldPosition(p);
+    return p;
+}
+
+function getGain(t) {
+    if (t < 10) return 1.00;
+    if (t < 20) return 0.95;
+    if (t < 30) return 0.90;
+    return 0.85;
+}
+
+rightController.addEventListener("controllerconnected", function() {
+    controllerConnected = true;
+    controllerText.innerText = "Rechter controller: verbonden";
+    vrInfoText.setAttribute("value", "Controller gevonden. Druk A om te starten.");
+});
+
+rightController.addEventListener("controllerdisconnected", function() {
+    controllerConnected = false;
+    controllerText.innerText = "Rechter controller: verbinding kwijt";
+    vrInfoText.setAttribute("value", "Rechter controller niet gevonden.");
+});
+
+function registerPainPress() {
+    if (!experimentRunning) return;
+
+    const now = performance.now();
+    const elapsed = (now - startTime) / 1000;
+    const gain = getGain(elapsed);
+
+    painPressTimes.push(elapsed);
+    totalPainPresses++;
+    painCountText.innerText = "Aantal pijndrukken: " + totalPainPresses;
+
+    data.push({
+        event: "pain_press",
+        time: elapsed,
+        gain: gain,
+        target_x: target.object3D.position.x,
+        target_y: target.object3D.position.y,
+        target_z: target.object3D.position.z,
+        controller_world_x: "",
+        controller_world_y: "",
+        controller_world_z: "",
+        controller_ref_x: controllerReference.x,
+        controller_ref_y: controllerReference.y,
+        controller_ref_z: controllerReference.z,
+        real_x: realX,
+        real_y: realY,
+        real_z: realZ,
+        visual_x: visualX,
+        visual_y: visualY,
+        visual_z: visualZ,
+        error_m: "",
+        error_cm: "",
+        pain_count: totalPainPresses,
+        pain_press_event: 1
+    });
+}
+
+rightController.addEventListener("triggerdown", registerPainPress);
+
+rightController.addEventListener("abuttondown", function() {
+    if (!experimentRunning && !countdownRunning) beginCountdown();
+});
+
+startButton.addEventListener("click", function() {
+    if (!experimentRunning && !countdownRunning) beginCountdown();
+});
+
+function beginCountdown() {
+    if (!controllerConnected) {
+        statusText.innerText = "Geen rechter Quest-controller gevonden";
+        vrInfoText.setAttribute("value", "Geen controller gevonden.");
+        return;
+    }
+
+    countdownRunning = true;
+    experimentFinished = false;
+    statusText.innerText = "Kalibratie";
+    instructionText.innerText = "Houd de rechter controller comfortabel voor je.";
+    vrStatusText.setAttribute("value", "Kalibratie - houd je hand stil");
+
+    let count = 3;
+    vrCountdown.setAttribute("visible", true);
+    vrCountdown.setAttribute("value", "3");
+
+    const timer = setInterval(function() {
+        count--;
+        if (count > 0) {
+            vrCountdown.setAttribute("value", String(count));
+        } else {
+            clearInterval(timer);
+            vrCountdown.setAttribute("value", "START");
+            setTimeout(startExperiment, 500);
+        }
+    }, 1000);
+}
+
+function startExperiment() {
+    vrCountdown.setAttribute("visible", false);
+
+    controllerReference.copy(getControllerWorldPosition());
+
+    realX = referenceX;
+    realY = referenceY;
+    realZ = referenceZ;
+    visualX = referenceX;
+    visualY = referenceY;
+    visualZ = referenceZ;
+
+    cursor.object3D.position.set(visualX, visualY, visualZ);
+
+    data = [];
+    errorSum = 0;
+    errorCount = 0;
+    painPressTimes = [];
+    totalPainPresses = 0;
+    painCountText.innerText = "Aantal pijndrukken: 0";
+
+    startTime = performance.now();
+    lastLogTime = startTime;
+    experimentRunning = true;
+    countdownRunning = false;
+    experimentFinished = false;
+
+    statusText.innerText = "Experiment loopt";
+    instructionText.innerText = "Volg het vuurvliegje met de virtuele hand.";
+    vrStatusText.setAttribute("value", "Volg het vuurvliegje");
+    vrInfoText.setAttribute("value", "Trigger = pijn");
+
+    startButton.disabled = true;
+    saveButton.disabled = true;
+}
+
+function stopExperiment() {
+    experimentRunning = false;
+    experimentFinished = true;
+    statusText.innerText = "Experiment klaar";
+    instructionText.innerText = "Verlaat VR om de CSV op te slaan.";
+    vrStatusText.setAttribute("value", "KLAAR");
+    vrInfoText.setAttribute("value", "40 seconden voltooid");
+    startButton.disabled = false;
+    startButton.innerText = "Opnieuw starten";
+    saveButton.disabled = false;
+}
+
+function animate() {
+    const now = performance.now();
+
+    if (!experimentRunning) {
+        requestAnimationFrame(animate);
+        return;
+    }
+
+    const elapsed = (now - startTime) / 1000;
+
+    if (elapsed >= experimentDuration) {
+        timeText.innerText = "Tijd: 40.0 s / 40 s";
+        stopExperiment();
+        requestAnimationFrame(animate);
+        return;
+    }
+
+    const gain = getGain(elapsed);
+    const controllerPosition = getControllerWorldPosition();
+
+    const deltaX = controllerPosition.x - controllerReference.x;
+    const deltaY = controllerPosition.y - controllerReference.y;
+    const deltaZ = controllerPosition.z - controllerReference.z;
+
+    realX = clamp(referenceX + deltaX, minX, maxX);
+    realY = clamp(referenceY + deltaY, minY, maxY);
+    realZ = referenceZ + deltaZ;
+
+    visualX = realX;
+    visualY = referenceY + gain * (realY - referenceY);
+    visualZ = realZ;
+
+    cursor.object3D.position.set(visualX, visualY, visualZ);
+
+    const targetX = 0.95 * Math.sin(elapsed * 0.85) + 0.18 * Math.sin(elapsed * 2.3);
+    const targetY = referenceY + 0.55 * Math.sin(elapsed * 1.05) + 0.12 * Math.cos(elapsed * 2.1);
+    const targetZ = -3;
+
+    target.object3D.position.set(targetX, targetY, targetZ);
+
+    const dx = targetX - visualX;
+    const dy = targetY - visualY;
+    const errorMeters = Math.sqrt(dx * dx + dy * dy);
+    const errorCm = errorMeters * 100;
+
+    errorSum += errorCm;
+    errorCount++;
+    const meanErrorCm = errorSum / errorCount;
+
+    if (errorCm < 15) {
+        fireflyBody.setAttribute("material", "shader: standard; emissive: #fff58a; emissiveIntensity: 2.5");
+        fireflyGlow.setAttribute("scale", "1.35 1.35 1.35");
+        fireflyGlow.setAttribute("opacity", "0.45");
+        fireflyLight.setAttribute("light", "type: point; color: #fff58a; intensity: 1.8; distance: 3.5");
+        handGlow.setAttribute("opacity", "0.22");
+    } else {
+        fireflyBody.setAttribute("material", "shader: standard; emissive: #ffd54a; emissiveIntensity: 1.8");
+        fireflyGlow.setAttribute("scale", "1 1 1");
+        fireflyGlow.setAttribute("opacity", "0.30");
+        fireflyLight.setAttribute("light", "type: point; color: #ffd85e; intensity: 1.2; distance: 3");
+        handGlow.setAttribute("opacity", "0.15");
+    }
+
+    timeText.innerText = "Tijd: " + elapsed.toFixed(1) + " s / 40 s";
+    gainText.innerText = "Gain: " + gain.toFixed(2);
+    realYText.innerText = "Werkelijke Y: " + realY.toFixed(3);
+    visualYText.innerText = "Getoonde Y: " + visualY.toFixed(3);
+    errorText.innerHTML = "<strong>Trackingfout: " + errorCm.toFixed(1) + " cm</strong>";
+    meanErrorText.innerText = "Gemiddelde fout: " + meanErrorCm.toFixed(1) + " cm";
+    vrInfoText.setAttribute("value", "Tijd " + elapsed.toFixed(0) + "/40 s | gain " + gain.toFixed(2));
+
+    if (now - lastLogTime >= 16) {
+        data.push({
+            event: "frame",
+            time: elapsed,
+            gain: gain,
+            target_x: targetX,
+            target_y: targetY,
+            target_z: targetZ,
+            controller_world_x: controllerPosition.x,
+            controller_world_y: controllerPosition.y,
+            controller_world_z: controllerPosition.z,
+            controller_ref_x: controllerReference.x,
+            controller_ref_y: controllerReference.y,
+            controller_ref_z: controllerReference.z,
+            real_x: realX,
+            real_y: realY,
+            real_z: realZ,
+            visual_x: visualX,
+            visual_y: visualY,
+            visual_z: visualZ,
+            error_m: errorMeters,
+            error_cm: errorCm,
+            pain_count: totalPainPresses,
+            pain_press_event: 0
+        });
+        lastLogTime = now;
+    }
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+saveButton.addEventListener("click", function() {
+    let csv =
+        "event,time_s,gain," +
+        "target_x,target_y,target_z," +
+        "controller_world_x,controller_world_y,controller_world_z," +
+        "controller_ref_x,controller_ref_y,controller_ref_z," +
+        "real_x,real_y,real_z," +
+        "visual_x,visual_y,visual_z," +
+        "error_m,error_cm," +
+        "pain_count,pain_press_event\n";
+
+    function f(value, decimals) {
+        if (value === "" || value === undefined || value === null) return "";
+        return Number(value).toFixed(decimals);
+    }
+
+    data.forEach(function(row) {
+        csv +=
+            (row.event || "frame") + "," +
+            f(row.time, 4) + "," +
+            f(row.gain, 2) + "," +
+            f(row.target_x, 4) + "," +
+            f(row.target_y, 4) + "," +
+            f(row.target_z, 4) + "," +
+            f(row.controller_world_x, 4) + "," +
+            f(row.controller_world_y, 4) + "," +
+            f(row.controller_world_z, 4) + "," +
+            f(row.controller_ref_x, 4) + "," +
+            f(row.controller_ref_y, 4) + "," +
+            f(row.controller_ref_z, 4) + "," +
+            f(row.real_x, 4) + "," +
+            f(row.real_y, 4) + "," +
+            f(row.real_z, 4) + "," +
+            f(row.visual_x, 4) + "," +
+            f(row.visual_y, 4) + "," +
+            f(row.visual_z, 4) + "," +
+            f(row.error_m, 4) + "," +
+            f(row.error_cm, 2) + "," +
+            (row.pain_count ?? 0) + "," +
+            (row.pain_press_event ?? 0) + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "firefly_quest_data.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
