@@ -405,6 +405,12 @@ function animate() {
 }
 
     const elapsed = (now - startTime) / 1000;
+    vrStatusText.setAttribute(
+    "value",
+    "Experiment loopt: " +
+    elapsed.toFixed(1) +
+    " s"
+);
 
     if (elapsed >= experimentDuration) {
         timeText.innerText = "Tijd: 40.0 s / 40 s";
