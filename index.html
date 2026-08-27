@@ -133,6 +133,14 @@
         CSV opslaan
     </button>
 
+    <button id="painButton">
+    Pijn
+</button>
+
+<div id="painRateText">
+    Pijnfrequentie: 0.00 /s
+</div>
+
 </div>
 
 <a-scene
@@ -279,6 +287,8 @@ const handGlow = document.querySelector("#handGlow");
 
 const startButton = document.querySelector("#startButton");
 const saveButton = document.querySelector("#saveButton");
+const painButton = document.querySelector("#painButton");
+const painRateText = document.querySelector("#painRateText");
 
 const statusText = document.querySelector("#statusText");
 const instructionText = document.querySelector("#instructionText");
@@ -327,6 +337,9 @@ let realY = referenceY;
 
 let data = [];
 
+let painPressTimes = [];
+let totalPainPresses = 0;
+
 let errorSum = 0;
 let errorCount = 0;
 
@@ -371,6 +384,44 @@ function getGain(t) {
 
 
 // ======================================================
+// PIJNKLIK REGISTREREN
+// ======================================================
+
+painButton.addEventListener("click", function() {
+
+    if (!experimentRunning) {
+        return;
+    }
+
+    const now = performance.now();
+    const elapsed = (now - startTime) / 1000;
+    const gain = getGain(elapsed);
+
+    painPressTimes.push(elapsed);
+    totalPainPresses++;
+
+    data.push({
+        event: "pain_press",
+        time: elapsed,
+        gain: gain,
+
+        target_x: target.object3D.position.x,
+        target_y: target.object3D.position.y,
+
+        real_x: realX,
+        real_y: realY,
+
+        visual_x: cursor.object3D.position.x,
+        visual_y: cursor.object3D.position.y,
+
+        error_m: "",
+        error_cm: "",
+
+        pain_press: totalPainPresses
+    });
+});
+    
+// ======================================================
 // COUNTDOWN
 // ======================================================
 
@@ -411,6 +462,12 @@ function showCountdown() {
         errorCount = 0;
         data = [];
 
+        painPressTimes = [];
+        totalPainPresses = 0;
+
+        painRateText.innerText =
+            "Pijnfrequentie: 0.00 /s";
+        
         experimentRunning = true;
         countdownRunning = false;
         experimentFinished = false;
@@ -491,6 +548,21 @@ function animate() {
     }
 
     const elapsed = (now - startTime) / 1000;
+
+    const painWindow = 2.0;
+
+    const recentPresses =
+    painPressTimes.filter(function(t) {
+        return elapsed - t <= painWindow && elapsed - t >= 0;
+    });
+
+    const painRate =
+    recentPresses.length / painWindow;
+
+    painRateText.innerText =
+    "Pijnfrequentie: " +
+    painRate.toFixed(2) +
+    " /s";
 
     if (elapsed >= experimentDuration) {
         timeText.innerText = "Tijd: 40.0 s / 40 s";
@@ -621,11 +693,12 @@ animate();
 saveButton.addEventListener("click", function() {
 
     let csv =
-        "time_s,gain," +
+        "event,time_s,gain," +
         "target_x,target_y," +
         "real_x,real_y," +
         "visual_x,visual_y," +
-        "error_m,error_cm\n";
+        "error_m,error_cm," +
+        "pain_press\n";
 
     data.forEach(function(row) {
         csv +=
