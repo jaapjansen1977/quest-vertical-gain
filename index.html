@@ -22,7 +22,7 @@
             padding: 14px;
             font-family: Arial, sans-serif;
             border-radius: 8px;
-            min-width: 250px;
+            min-width: 260px;
         }
 
         button {
@@ -37,22 +37,38 @@
             font-weight: bold;
             margin-bottom: 8px;
         }
+
+        #countdown {
+            position: fixed;
+            left: 50%;
+            top: 45%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            font-family: Arial, sans-serif;
+            font-size: 90px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 12px black;
+            display: none;
+        }
     </style>
 </head>
 
 <body>
+
+<div id="countdown">3</div>
 
 <div id="info">
 
     <div><strong>Vertical Gain Experiment</strong></div>
 
     <div id="statusText">
-        Klaar voor kalibratie
+        Klaar voor start
     </div>
 
     <div>
-        Plaats de muis waar je prettig wilt starten
-        en klik op Start experiment.
+        Klik op Start. Daarna heb je 3 seconden
+        om de muis in de gewenste startpositie te zetten.
     </div>
 
     <hr>
@@ -88,7 +104,6 @@
 
 </div>
 
-
 <a-scene>
 
     <a-sky color="#AFCFE8"></a-sky>
@@ -121,46 +136,28 @@
 
 </a-scene>
 
-
 <script>
 
-const target =
-    document.querySelector("#target");
+const target = document.querySelector("#target");
+const cursor = document.querySelector("#cursor");
 
-const cursor =
-    document.querySelector("#cursor");
+const startButton = document.querySelector("#startButton");
+const saveButton = document.querySelector("#saveButton");
 
-const startButton =
-    document.querySelector("#startButton");
+const statusText = document.querySelector("#statusText");
+const countdown = document.querySelector("#countdown");
 
-const saveButton =
-    document.querySelector("#saveButton");
-
-const statusText =
-    document.querySelector("#statusText");
-
-const timeText =
-    document.querySelector("#timeText");
-
-const gainText =
-    document.querySelector("#gainText");
-
-const realYText =
-    document.querySelector("#realYText");
-
-const visualYText =
-    document.querySelector("#visualYText");
-
-const errorText =
-    document.querySelector("#errorText");
-
-const meanErrorText =
-    document.querySelector("#meanErrorText");
+const timeText = document.querySelector("#timeText");
+const gainText = document.querySelector("#gainText");
+const realYText = document.querySelector("#realYText");
+const visualYText = document.querySelector("#visualYText");
+const errorText = document.querySelector("#errorText");
+const meanErrorText = document.querySelector("#meanErrorText");
 
 
-// ----------------------------------
+// =============================
 // INSTELLINGEN
-// ----------------------------------
+// =============================
 
 const referenceX = 0;
 const referenceY = 1.5;
@@ -168,10 +165,12 @@ const referenceY = 1.5;
 const mouseScaleX = 0.003;
 const mouseScaleY = 0.003;
 
+const experimentDuration = 40;
 
-// ----------------------------------
+
+// =============================
 // STATUS
-// ----------------------------------
+// =============================
 
 let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
@@ -180,6 +179,8 @@ let calibrationMouseX = mouseX;
 let calibrationMouseY = mouseY;
 
 let experimentRunning = false;
+let countdownRunning = false;
+let experimentFinished = false;
 
 let startTime = 0;
 
@@ -191,120 +192,190 @@ let errorCount = 0;
 let lastLogTime = 0;
 
 
-// ----------------------------------
+// =============================
 // MUIS
-// ----------------------------------
+// =============================
 
-document.addEventListener(
-    "mousemove",
-    function(event) {
-
-        mouseX = event.clientX;
-        mouseY = event.clientY;
-    }
-);
+document.addEventListener("mousemove", function(event) {
+    mouseX = event.clientX;
+    mouseY = event.clientY;
+});
 
 
-// ----------------------------------
+// =============================
 // GAIN
-// ----------------------------------
+// =============================
 
 function getGain(timeSeconds) {
 
     if (timeSeconds < 10) return 1.00;
     if (timeSeconds < 20) return 0.95;
     if (timeSeconds < 30) return 0.90;
-    if (timeSeconds < 40) return 0.85;
-    if (timeSeconds < 50) return 0.90;
-    if (timeSeconds < 60) return 0.95;
-
-    return 1.00;
+    return 0.85;
 }
 
 
-// ----------------------------------
-// START / KALIBRATIE
-// ----------------------------------
+// =============================
+// START + COUNTDOWN
+// =============================
 
-startButton.addEventListener(
-    "click",
-    function() {
+startButton.addEventListener("click", function() {
 
-        // huidige muispositie is de neutrale positie
-        calibrationMouseX = mouseX;
-        calibrationMouseY = mouseY;
-
-        // reset experiment
-        data = [];
-
-        errorSum = 0;
-        errorCount = 0;
-
-        startTime = performance.now();
-        lastLogTime = startTime;
-
-        experimentRunning = true;
-
-        statusText.innerText =
-            "Experiment loopt";
-
-        startButton.innerText =
-            "Herstart experiment";
-
-        saveButton.disabled = false;
+    if (countdownRunning || experimentRunning) {
+        return;
     }
-);
+
+    data = [];
+    errorSum = 0;
+    errorCount = 0;
+    experimentFinished = false;
+
+    saveButton.disabled = true;
+
+    statusText.innerText =
+        "Ga naar de startpositie";
+
+    countdownRunning = true;
+
+    let count = 3;
+
+    countdown.innerText = count;
+    countdown.style.display = "block";
+
+    const countdownTimer = setInterval(function() {
+
+        count--;
+
+        if (count > 0) {
+
+            countdown.innerText = count;
+
+        } else {
+
+            clearInterval(countdownTimer);
+
+            countdown.innerText = "START";
+
+            setTimeout(function() {
+
+                countdown.style.display = "none";
+
+                // HIER vindt de echte kalibratie plaats
+                calibrationMouseX = mouseX;
+                calibrationMouseY = mouseY;
+
+                startTime = performance.now();
+                lastLogTime = startTime;
+
+                experimentRunning = true;
+                countdownRunning = false;
+
+                statusText.innerText =
+                    "Experiment loopt";
+
+                startButton.disabled = true;
+
+            }, 500);
+        }
+
+    }, 1000);
+
+});
 
 
-// ----------------------------------
+// =============================
+// EXPERIMENT STOPPEN
+// =============================
+
+function stopExperiment() {
+
+    experimentRunning = false;
+    experimentFinished = true;
+
+    statusText.innerText =
+        "Experiment klaar";
+
+    startButton.disabled = false;
+
+    startButton.innerText =
+        "Opnieuw starten";
+
+    saveButton.disabled = false;
+
+    // target en cursor terug naar startpositie
+    target.object3D.position.set(
+        referenceX,
+        referenceY,
+        -3
+    );
+
+    cursor.object3D.position.set(
+        referenceX,
+        referenceY,
+        -2.8
+    );
+}
+
+
+// =============================
 // ANIMATIE
-// ----------------------------------
+// =============================
 
 function animate() {
 
     const now = performance.now();
 
-    let elapsed = 0;
-    let gain = 1.00;
-
-
-    // ====================================================
-    // VOOR HET EXPERIMENT
-    // ====================================================
+    // ---------------------------------
+    // NIET LOPENDE FASE
+    // ---------------------------------
 
     if (!experimentRunning) {
 
-        target.object3D.position.set(
-            referenceX,
-            referenceY,
-            -3
-        );
+        if (!experimentFinished) {
 
-        cursor.object3D.position.set(
-            referenceX,
-            referenceY,
-            -2.8
-        );
+            target.object3D.position.set(
+                referenceX,
+                referenceY,
+                -3
+            );
+
+            cursor.object3D.position.set(
+                referenceX,
+                referenceY,
+                -2.8
+            );
+        }
 
         requestAnimationFrame(animate);
         return;
     }
 
 
-    // ====================================================
-    // EXPERIMENT
-    // ====================================================
+    // ---------------------------------
+    // TIJD
+    // ---------------------------------
 
-    elapsed =
+    const elapsed =
         (now - startTime) / 1000;
 
-    gain =
-        getGain(elapsed);
+    if (elapsed >= experimentDuration) {
+
+        timeText.innerText =
+            "Tijd: 40.0 s";
+
+        stopExperiment();
+
+        requestAnimationFrame(animate);
+        return;
+    }
 
 
-    // ----------------------------------
+    const gain = getGain(elapsed);
+
+
+    // ---------------------------------
     // TARGET
-    // ----------------------------------
+    // ---------------------------------
 
     const targetX =
         1.0 * Math.sin(elapsed * 0.7);
@@ -320,18 +391,15 @@ function animate() {
     );
 
 
-    // ----------------------------------
-    // MUISBEWEGING T.O.V. KALIBRATIE
-    // ----------------------------------
+    // ---------------------------------
+    // MUIS T.O.V. KALIBRATIE
+    // ---------------------------------
 
     const deltaMouseX =
         mouseX - calibrationMouseX;
 
     const deltaMouseY =
         calibrationMouseY - mouseY;
-
-
-    // fictieve echte controllerpositie
 
     const realX =
         referenceX +
@@ -342,20 +410,15 @@ function animate() {
         deltaMouseY * mouseScaleY;
 
 
-    // ----------------------------------
+    // ---------------------------------
     // VISUELE POSITIE
-    // ----------------------------------
+    // ---------------------------------
 
-    // horizontaal blijft 1 : 1
-    const visualX =
-        realX;
+    const visualX = realX;
 
-    // verticale gain
     const visualY =
         referenceY +
-        gain *
-        (realY - referenceY);
-
+        gain * (realY - referenceY);
 
     cursor.object3D.position.set(
         visualX,
@@ -364,9 +427,9 @@ function animate() {
     );
 
 
-    // ----------------------------------
+    // ---------------------------------
     // TRACKINGFOUT
-    // ----------------------------------
+    // ---------------------------------
 
     const dx =
         targetX - visualX;
@@ -375,10 +438,7 @@ function animate() {
         targetY - visualY;
 
     const errorMeters =
-        Math.sqrt(
-            dx * dx +
-            dy * dy
-        );
+        Math.sqrt(dx * dx + dy * dy);
 
     const errorCm =
         errorMeters * 100;
@@ -390,14 +450,14 @@ function animate() {
         errorSum / errorCount;
 
 
-    // ----------------------------------
+    // ---------------------------------
     // DISPLAY
-    // ----------------------------------
+    // ---------------------------------
 
     timeText.innerText =
         "Tijd: " +
         elapsed.toFixed(1) +
-        " s";
+        " s / 40 s";
 
     gainText.innerText =
         "Gain: " +
@@ -422,16 +482,15 @@ function animate() {
         " cm";
 
 
-    // ----------------------------------
+    // ---------------------------------
     // LOGGING ~ 60 Hz
-    // ----------------------------------
+    // ---------------------------------
 
     if (now - lastLogTime >= 16) {
 
         data.push({
 
             time: elapsed,
-
             gain: gain,
 
             target_x: targetX,
@@ -459,94 +518,81 @@ function animate() {
         lastLogTime = now;
     }
 
-
     requestAnimationFrame(animate);
 }
 
 animate();
 
 
-// ----------------------------------
-// CSV
-// ----------------------------------
+// =============================
+// CSV OPSLAAN
+// =============================
 
-saveButton.addEventListener(
-    "click",
-    function() {
+saveButton.addEventListener("click", function() {
 
-        let csv =
-            "time_s,gain," +
-            "target_x,target_y," +
-            "real_x,real_y," +
-            "visual_x,visual_y," +
-            "error_m,error_cm," +
-            "mouse_x,mouse_y," +
-            "calibration_mouse_x," +
-            "calibration_mouse_y\n";
+    let csv =
+        "time_s,gain," +
+        "target_x,target_y," +
+        "real_x,real_y," +
+        "visual_x,visual_y," +
+        "error_m,error_cm," +
+        "mouse_x,mouse_y," +
+        "calibration_mouse_x," +
+        "calibration_mouse_y\n";
 
+    data.forEach(function(row) {
 
-        data.forEach(
-            function(row) {
+        csv +=
 
-                csv +=
+            row.time.toFixed(4) + "," +
+            row.gain.toFixed(2) + "," +
 
-                    row.time.toFixed(4) + "," +
-                    row.gain.toFixed(2) + "," +
+            row.target_x.toFixed(4) + "," +
+            row.target_y.toFixed(4) + "," +
 
-                    row.target_x.toFixed(4) + "," +
-                    row.target_y.toFixed(4) + "," +
+            row.real_x.toFixed(4) + "," +
+            row.real_y.toFixed(4) + "," +
 
-                    row.real_x.toFixed(4) + "," +
-                    row.real_y.toFixed(4) + "," +
+            row.visual_x.toFixed(4) + "," +
+            row.visual_y.toFixed(4) + "," +
 
-                    row.visual_x.toFixed(4) + "," +
-                    row.visual_y.toFixed(4) + "," +
+            row.error_m.toFixed(4) + "," +
+            row.error_cm.toFixed(2) + "," +
 
-                    row.error_m.toFixed(4) + "," +
-                    row.error_cm.toFixed(2) + "," +
+            row.mouse_x.toFixed(1) + "," +
+            row.mouse_y.toFixed(1) + "," +
 
-                    row.mouse_x.toFixed(1) + "," +
-                    row.mouse_y.toFixed(1) + "," +
+            row.calibration_mouse_x.toFixed(1) + "," +
+            row.calibration_mouse_y.toFixed(1) +
 
-                    row.calibration_mouse_x.toFixed(1) + "," +
-                    row.calibration_mouse_y.toFixed(1) +
+            "\n";
+    });
 
-                    "\n";
-            }
+    const blob =
+        new Blob(
+            [csv],
+            { type: "text/csv;charset=utf-8;" }
         );
 
+    const url =
+        URL.createObjectURL(blob);
 
-        const blob =
-            new Blob(
-                [csv],
-                {
-                    type:
-                    "text/csv;charset=utf-8;"
-                }
-            );
+    const link =
+        document.createElement("a");
 
+    link.href = url;
 
-        const url =
-            URL.createObjectURL(blob);
+    link.download =
+        "vertical_gain_experiment.csv";
 
+    document.body.appendChild(link);
 
-        const link =
-            document.createElement("a");
+    link.click();
 
-        link.href = url;
+    document.body.removeChild(link);
 
-        link.download =
-            "vertical_gain_experiment.csv";
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(url);
-    }
-);
+    URL.revokeObjectURL(url);
+});
 
 </script>
 
