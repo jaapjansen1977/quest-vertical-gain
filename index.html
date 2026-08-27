@@ -32,9 +32,31 @@
         color="red">
     </a-box>
 
-    <!-- Camera / hoofd -->
-    <a-entity position="0 0 0">
+    <!-- XR rig -->
+    <a-entity id="rig">
+
+        <!-- Hoofd / camera -->
         <a-camera position="0 1.6 0"></a-camera>
+
+        <!-- Linker controller -->
+        <a-entity
+            id="leftController"
+            laser-controls="hand: left">
+        </a-entity>
+
+        <!-- Rechter controller -->
+        <a-entity
+            id="rightController"
+            laser-controls="hand: right">
+
+            <!-- Geel bolletje op positie van rechter controller -->
+            <a-sphere
+                radius="0.06"
+                color="yellow">
+            </a-sphere>
+
+        </a-entity>
+
     </a-entity>
 
 </a-scene>
