@@ -263,41 +263,109 @@ function beginCountdown() {
 }
 
 function startExperiment() {
+
     vrCountdown.setAttribute("visible", false);
 
-    controllerReference.copy(getControllerWorldPosition());
+    // Controllerpositie veilig uitlezen
+    let startPos = new THREE.Vector3();
 
+    try {
+
+        rightController.object3D.getWorldPosition(startPos);
+
+    } catch (error) {
+
+        console.error("Controllerpositie kon niet worden gelezen:", error);
+
+        vrStatusText.setAttribute(
+            "value",
+            "Fout bij controllertracking"
+        );
+
+        statusText.innerText =
+            "Fout bij controllertracking";
+
+        countdownRunning = false;
+
+        return;
+    }
+
+
+    // Referentiepositie opslaan
+    controllerReference.set(
+        startPos.x,
+        startPos.y,
+        startPos.z
+    );
+
+
+    // Virtuele startpositie
     realX = referenceX;
     realY = referenceY;
     realZ = referenceZ;
+
     visualX = referenceX;
     visualY = referenceY;
     visualZ = referenceZ;
 
-    cursor.object3D.position.set(visualX, visualY, visualZ);
+    cursor.object3D.position.set(
+        visualX,
+        visualY,
+        visualZ
+    );
 
+
+    // Data resetten
     data = [];
+
     errorSum = 0;
     errorCount = 0;
+
     painPressTimes = [];
     totalPainPresses = 0;
-    painCountText.innerText = "Aantal pijndrukken: 0";
 
+    painCountText.innerText =
+        "Aantal pijndrukken: 0";
+
+
+    // Timer starten
     startTime = performance.now();
     lastLogTime = startTime;
+
+
+    // DIT IS DE BELANGRIJKE REGEL
     experimentRunning = true;
+
     countdownRunning = false;
     experimentFinished = false;
 
-    statusText.innerText = "Experiment loopt";
-    instructionText.innerText = "Volg het vuurvliegje met de virtuele hand.";
-    vrStatusText.setAttribute("value", "Volg het vuurvliegje");
-    vrInfoText.setAttribute("value", "Trigger = pijn");
+
+    // Status
+    statusText.innerText =
+        "Experiment loopt";
+
+    instructionText.innerText =
+        "Volg het vuurvliegje met de virtuele hand.";
+
+    vrStatusText.setAttribute(
+        "value",
+        "Volg het vuurvliegje"
+    );
+
+    vrInfoText.setAttribute(
+        "value",
+        "Trigger = pijn"
+    );
 
     startButton.disabled = true;
-    saveButton.disabled = true;
-}
 
+    console.log(
+        "Experiment gestart. Controllerreferentie:",
+        controllerReference.x,
+        controllerReference.y,
+        controllerReference.z
+    );
+}
 function stopExperiment() {
     experimentRunning = false;
     experimentFinished = true;
