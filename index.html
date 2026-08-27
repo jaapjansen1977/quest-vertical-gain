@@ -2,64 +2,156 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Quest Vertical Gain Test</title>
+    <title>Vertical Gain Mouse Test</title>
 
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            background: rgba(255,255,255,0.9);
+            padding: 12px;
+            font-family: Arial, sans-serif;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 
 <body>
 
+<div id="info">
+    <div><strong>Vertical Gain Test</strong></div>
+    <div>Beweeg de muis omhoog en omlaag</div>
+    <div id="gainText">Gain: 1.00</div>
+    <div id="realYText">Werkelijke Y: 0.00</div>
+    <div id="visualYText">Getoonde Y: 0.00</div>
+</div>
+
 <a-scene>
 
-    <!-- Achtergrond -->
     <a-sky color="#AFCFE8"></a-sky>
 
-    <!-- Vloer -->
     <a-plane
-        position="0 0 0"
+        position="0 0 -3"
         rotation="-90 0 0"
-        width="20"
-        height="20"
-        color="#777">
+        width="10"
+        height="10"
+        color="#888">
     </a-plane>
 
-    <!-- Rode testkubus -->
-    <a-box
+    <!-- Bewegend doel -->
+    <a-sphere
+        id="target"
         position="0 1.5 -3"
-        width="0.5"
-        height="0.5"
-        depth="0.5"
+        radius="0.12"
         color="red">
-    </a-box>
+    </a-sphere>
 
-    <!-- XR rig -->
-    <a-entity id="rig">
+    <!-- Visuele positie van gebruiker -->
+    <a-sphere
+        id="cursor"
+        position="0 1.5 -2.8"
+        radius="0.10"
+        color="yellow">
+    </a-sphere>
 
-        <!-- Hoofd / camera -->
-        <a-camera position="0 1.6 0"></a-camera>
-
-        <!-- Linker controller -->
-        <a-entity
-            id="leftController"
-            laser-controls="hand: left">
-        </a-entity>
-
-        <!-- Rechter controller -->
-        <a-entity
-            id="rightController"
-            laser-controls="hand: right">
-
-            <!-- Geel bolletje op positie van rechter controller -->
-            <a-sphere
-                radius="0.06"
-                color="yellow">
-            </a-sphere>
-
-        </a-entity>
-
-    </a-entity>
+    <a-camera position="0 1.6 0"></a-camera>
 
 </a-scene>
+
+<script>
+
+const target = document.querySelector("#target");
+const cursor = document.querySelector("#cursor");
+
+const gainText = document.querySelector("#gainText");
+const realYText = document.querySelector("#realYText");
+const visualYText = document.querySelector("#visualYText");
+
+let mouseY = window.innerHeight / 2;
+
+let startTime = performance.now();
+
+const referenceY = 1.5;
+
+// muispositie bewaren
+document.addEventListener("mousemove", function(event) {
+    mouseY = event.clientY;
+});
+
+function getGain(timeSeconds) {
+
+    if (timeSeconds < 10) return 1.00;
+    if (timeSeconds < 20) return 0.95;
+    if (timeSeconds < 30) return 0.90;
+    if (timeSeconds < 40) return 0.85;
+    if (timeSeconds < 50) return 0.90;
+    if (timeSeconds < 60) return 0.95;
+
+    return 1.00;
+}
+
+function animate() {
+
+    const now = performance.now();
+
+    const elapsed = (now - startTime) / 1000;
+
+    const gain = getGain(elapsed);
+
+    // target beweegt sinusvormig omhoog en omlaag
+    const targetY =
+        1.5 +
+        0.7 * Math.sin(elapsed * 1.0);
+
+    target.setAttribute("position", {
+        x: 0,
+        y: targetY,
+        z: -3
+    });
+
+    // muis omzetten naar hoogte
+    const normalizedMouse =
+        1 - (mouseY / window.innerHeight);
+
+    // echte fictieve controllerhoogte
+    const realY =
+        0.5 + normalizedMouse * 2.0;
+
+    // verticale gain toepassen
+    const visualY =
+        referenceY +
+        gain * (realY - referenceY);
+
+    cursor.setAttribute("position", {
+        x: 0,
+        y: visualY,
+        z: -2.8
+    });
+
+    gainText.innerText =
+        "Gain: " + gain.toFixed(2);
+
+    realYText.innerText =
+        "Werkelijke Y: " + realY.toFixed(2);
+
+    visualYText.innerText =
+        "Getoonde Y: " + visualY.toFixed(2);
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+</script>
 
 </body>
 </html>
