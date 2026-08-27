@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Quest Controller Debug</title>
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+</head>
+
+<body>
+
+<a-scene id="scene">
+
+    <a-sky color="#305070"></a-sky>
+
+    <a-plane
+        position="0 0 -3"
+        rotation="-90 0 0"
+        width="10"
+        height="10"
+        color="#557755">
+    </a-plane>
+
+    <!-- Referentie -->
+    <a-box
+        position="0 1.5 -3"
+        width="0.4"
+        height="0.4"
+        depth="0.4"
+        color="red">
+    </a-box>
+
+    <!-- Rechtercontroller -->
+    <a-entity
+        id="rightController"
+        laser-controls="hand: right">
+    </a-entity>
+
+    <!-- Gele marker die we ZELF aan controllerpose koppelen -->
+    <a-sphere
+        id="marker"
+        position="0 1.5 -2"
+        radius="0.10"
+        color="yellow">
+    </a-sphere>
+
+    <!-- Debugtekst in VR -->
+    <a-text
+        id="debugText"
+        value="Wacht op VR..."
+        position="0 2.2 -2.5"
+        align="center"
+        width="3.5"
+        color="white">
+    </a-text>
+
+    <a-camera position="0 1.6 0"></a-camera>
+
+</a-scene>
+
+
+<script>
+
+const scene =
+    document.querySelector("#scene");
+
+const controller =
+    document.querySelector("#rightController");
+
+const marker =
+    document.querySelector("#marker");
+
+const debugText =
+    document.querySelector("#debugText");
+
+
+controller.addEventListener(
+    "controllerconnected",
+    function(event) {
+
+        debugText.setAttribute(
+            "value",
+            "Controllerconnected"
+        );
+
+        console.log(
+            "controllerconnected",
+            event.detail
+        );
+    }
+);
+
+
+controller.addEventListener(
+    "triggerdown",
+    function() {
+
+        debugText.setAttribute(
+            "value",
+            "TRIGGER!"
+        );
+    }
+);
+
+
+function animate() {
+
+    if (
+        scene.is("vr-mode") &&
+        controller.object3D
+    ) {
+
+        const p =
+            new THREE.Vector3();
+
+        controller.object3D.getWorldPosition(p);
+
+        marker.object3D.position.set(
+            p.x,
+            p.y,
+            p.z
+        );
+
+        debugText.setAttribute(
+            "value",
+            "x " + p.x.toFixed(2) +
+            "   y " + p.y.toFixed(2) +
+            "   z " + p.z.toFixed(2)
+        );
+    }
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
