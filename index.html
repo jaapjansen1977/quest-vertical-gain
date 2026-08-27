@@ -4,70 +4,7 @@
     <meta charset="utf-8">
     <title>Vertical Gain Mouse Test</title>
 
-    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #info {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999;
-            background: rgba(255,255,255,0.9);
-            padding: 12px;
-            font-family: Arial, sans-serif;
-            border-radius: 8px;
-        }
-    </style>
-</head>
-
-<body>
-
-<div id="info">
-    <div><strong>Vertical Gain Test</strong></div>
-    <div>Beweeg de muis omhoog en omlaag</div>
-    <div id="gainText">Gain: 1.00</div>
-    <div id="realYText">Werkelijke Y: 0.00</div>
-    <div id="visualYText">Getoonde Y: 0.00</div>
-</div>
-
-<a-scene>
-
-    <a-sky color="#AFCFE8"></a-sky>
-
-    <a-plane
-        position="0 0 -3"
-        rotation="-90 0 0"
-        width="10"
-        height="10"
-        color="#888">
-    </a-plane>
-
-    <!-- Bewegend doel -->
-    <a-sphere
-        id="target"
-        position="0 1.5 -3"
-        radius="0.12"
-        color="red">
-    </a-sphere>
-
-    <!-- Visuele positie van gebruiker -->
-    <a-sphere
-        id="cursor"
-        position="0 1.5 -2.8"
-        radius="0.10"
-        color="yellow">
-    </a-sphere>
-
-    <a-camera position="0 1.6 0"></a-camera>
-
-</a-scene>
-
-<script>
+   <script>
 
 const target = document.querySelector("#target");
 const cursor = document.querySelector("#cursor");
@@ -76,6 +13,7 @@ const gainText = document.querySelector("#gainText");
 const realYText = document.querySelector("#realYText");
 const visualYText = document.querySelector("#visualYText");
 
+let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
 
 let startTime = performance.now();
@@ -84,6 +22,7 @@ const referenceY = 1.5;
 
 // muispositie bewaren
 document.addEventListener("mousemove", function(event) {
+    mouseX = event.clientX;
     mouseY = event.clientY;
 });
 
@@ -102,37 +41,47 @@ function getGain(timeSeconds) {
 function animate() {
 
     const now = performance.now();
-
     const elapsed = (now - startTime) / 1000;
 
     const gain = getGain(elapsed);
 
-    // target beweegt sinusvormig omhoog en omlaag
+    // target beweegt in 2D: links/rechts én omhoog/omlaag
+    const targetX =
+        0.8 * Math.sin(elapsed * 0.7);
+
     const targetY =
-        1.5 +
-        0.7 * Math.sin(elapsed * 1.0);
+        1.5 + 0.7 * Math.sin(elapsed * 1.0);
 
     target.setAttribute("position", {
-        x: 0,
+        x: targetX,
         y: targetY,
         z: -3
     });
 
-    // muis omzetten naar hoogte
-    const normalizedMouse =
+    // muis X normaliseren naar -1 tot +1
+    const normalizedMouseX =
+        (mouseX / window.innerWidth) * 2 - 1;
+
+    // muis Y normaliseren naar 0 tot 1
+    const normalizedMouseY =
         1 - (mouseY / window.innerHeight);
 
-    // echte fictieve controllerhoogte
-    const realY =
-        0.5 + normalizedMouse * 2.0;
+    // fictieve echte controllerpositie
+    const realX =
+        normalizedMouseX * 1.2;
 
-    // verticale gain toepassen
+    const realY =
+        0.5 + normalizedMouseY * 2.0;
+
+    // alleen verticale gain toepassen
+    const visualX = realX;
+
     const visualY =
         referenceY +
         gain * (realY - referenceY);
 
     cursor.setAttribute("position", {
-        x: 0,
+        x: visualX,
         y: visualY,
         z: -2.8
     });
@@ -152,6 +101,3 @@ function animate() {
 animate();
 
 </script>
-
-</body>
-</html>
