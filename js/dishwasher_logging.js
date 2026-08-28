@@ -14,7 +14,8 @@ window.DishwasherData = (function () {
 
         const headers = [
             'event', 'time', 'gain', 'state', 'plate_number',
-            'real_y', 'visual_y', 'pickup_threshold_y', 'release_threshold_y'
+            'real_y', 'visual_y', 'pickup_threshold_y', 'release_threshold_y',
+            'pain_count'
         ];
 
         const lines = [headers.join(',')];
