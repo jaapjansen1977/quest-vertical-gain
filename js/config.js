@@ -21,9 +21,18 @@ window.APP_CONFIG = {
     ],
 
     arm: {
-        shoulder: { x: 1.32, y: 0.62, z: -2.68 },
-        elbowBend: 0.22,
-        upperArmRadius: 0.085,
-        forearmRadius: 0.072
+        // De arm begint bewust net onder de onderrand van het beeld,
+        // iets rechts van het midden. Daardoor lijkt hij vanuit het lichaam
+        // van de gebruiker het beeld in te komen.
+        shoulder: { x: 0.72, y: -0.58, z: -2.72 },
+
+        // Kleine laterale knik voor een natuurlijke ellebooglijn.
+        elbowBend: 0.12,
+
+        // Groter en voller dan de eerste versie, zodat de arm echt
+        // een substantieel deel van het beeld inneemt.
+        upperArmRadius: 0.15,
+        forearmRadius: 0.115,
+        handScale: 1.55
     }
 };
