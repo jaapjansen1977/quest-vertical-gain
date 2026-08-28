@@ -5,7 +5,7 @@
     <title>Vuurvliegje-volgtaak</title>
 
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 
 <body>
@@ -49,6 +49,10 @@
         <line class="finger finger4"></line>
         <line class="finger thumb"></line>
     </g>
+
+    <!-- Vuurvliegje ook in de bovenste SVG-laag tekenen, zodat het nooit door de hand verdwijnt. -->
+    <circle id="targetGlow2D" r="34"></circle>
+    <circle id="targetCore2D" r="14"></circle>
 </svg>
 
 <a-scene
@@ -86,7 +90,6 @@
     <a-sphere position="-2.6 0.3 -6.0" radius="0.30" color="#234d2f"></a-sphere>
     <a-sphere position="2.8 0.3 -6.2" radius="0.32" color="#234d2f"></a-sphere>
 
-    <!-- Vuurvliegje groter gemaakt, zodat het bij overlap met de hand zichtbaar blijft. -->
     <a-entity id="target" position="0 1.5 -3">
         <a-sphere id="fireflyGlow" radius="0.29" color="#ffd54a" opacity="0.34" transparent="true"></a-sphere>
         <a-sphere id="fireflyBody" radius="0.115" color="#ffe35a" material="shader: standard; emissive: #ffd54a; emissiveIntensity: 2.2"></a-sphere>
@@ -94,7 +97,6 @@
         <a-entity id="fireflyLight" light="type: point; color: #ffd85e; intensity: 1.5; distance: 3.5"></a-entity>
     </a-entity>
 
-    <!-- Onzichtbare cursor blijft bestaan voor logging en taakcoordinaten. -->
     <a-entity id="cursor" position="0 1.5 -2.8" visible="false">
         <a-sphere id="handGlow" radius="0.16" opacity="0"></a-sphere>
     </a-entity>
@@ -102,10 +104,10 @@
     <a-camera id="mainCamera" position="0 1.6 0"></a-camera>
 </a-scene>
 
-<script src="js/config.js?v=4"></script>
-<script src="js/arm.js?v=4"></script>
-<script src="js/logging.js?v=4"></script>
-<script src="js/experiment.js?v=4"></script>
+<script src="js/config.js?v=5"></script>
+<script src="js/arm.js?v=5"></script>
+<script src="js/logging.js?v=5"></script>
+<script src="js/experiment.js?v=5"></script>
 
 </body>
 </html>
