@@ -5,80 +5,7 @@
     <title>Vuurvliegje-volgtaak</title>
 
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background: #0b1320;
-        }
-
-        #info {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999;
-            background: rgba(12, 22, 28, 0.88);
-            color: white;
-            padding: 14px;
-            border-radius: 10px;
-            min-width: 290px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.35);
-        }
-
-        button {
-            margin-top: 10px;
-            margin-right: 6px;
-            padding: 10px 14px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-        }
-
-        #startButton {
-            background: #7bd389;
-        }
-
-        #saveButton {
-            background: #d8dbe2;
-        }
-
-        #statusText {
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        #countdown {
-            position: fixed;
-            inset: 0;
-            z-index: 20000;
-
-            display: none;
-            align-items: center;
-            justify-content: center;
-
-            background: rgba(0,0,0,0.20);
-
-            font-size: 110px;
-            font-weight: bold;
-            color: #fff8c2;
-
-            text-shadow:
-                0 0 8px black,
-                0 0 18px black,
-                0 0 32px rgba(255, 245, 160, 0.7);
-
-            pointer-events: none;
-        }
-
-        hr {
-            border: none;
-            border-top: 1px solid rgba(255,255,255,0.18);
-            margin: 10px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -86,63 +13,29 @@
 <div id="countdown">3</div>
 
 <div id="info">
-
     <div><strong>Vuurvliegje-volgtaak</strong></div>
 
-    <div id="statusText">
-        Klaar voor start
-    </div>
-
-    <div id="instructionText">
-        Klik op Start experiment.
-    </div>
+    <div id="statusText">Klaar voor start</div>
+    <div id="instructionText">Klik op Start experiment.</div>
 
     <hr>
 
-    <div id="timeText">
-        Tijd: 0.0 s / 40 s
-    </div>
-
-    <div id="gainText">
-        Gain: 1.00
-    </div>
-
-    <div id="realYText">
-        Werkelijke Y: 1.500
-    </div>
-
-    <div id="visualYText">
-        Getoonde Y: 1.500
-    </div>
+    <div id="timeText">Tijd: 0.0 s / 40 s</div>
+    <div id="gainText">Gain: 1.00</div>
+    <div id="realYText">Werkelijke Y: 1.500</div>
+    <div id="visualYText">Getoonde Y: 1.500</div>
 
     <hr>
 
-    <div id="errorText">
-        <strong>Trackingfout: 0.0 cm</strong>
-    </div>
+    <div id="errorText"><strong>Trackingfout: 0.0 cm</strong></div>
+    <div id="meanErrorText">Gemiddelde fout: 0.0 cm</div>
 
-    <div id="meanErrorText">
-        Gemiddelde fout: 0.0 cm
-    </div>
+    <button id="startButton">Start experiment</button>
+    <button id="saveButton" disabled>CSV opslaan</button>
+    <button id="painButton">Pijn</button>
 
-    <button id="startButton">
-        Start experiment
-    </button>
-
-    <button id="saveButton" disabled>
-        CSV opslaan
-    </button>
-
-    <button id="painButton">
-    Pijn
-</button>
-
-<div id="painRateText">
-    Pijnfrequentie: 0.00 /s
-</div>
-<div id="painCountText">
-    Aantal pijndrukken: 0
-</div>
+    <div id="painRateText">Pijnfrequentie: 0.00 /s</div>
+    <div id="painCountText">Aantal pijndrukken: 0</div>
 </div>
 
 <a-scene
@@ -174,7 +67,7 @@
         color="#6b5b43">
     </a-plane>
 
-    <!-- Verre heuvels / achtergrondvormen -->
+    <!-- Verre heuvels -->
     <a-sphere position="-6 1.2 -12" radius="3.0" color="#20382b"></a-sphere>
     <a-sphere position="0 1.4 -13" radius="3.5" color="#1c3327"></a-sphere>
     <a-sphere position="6 1.1 -12" radius="3.0" color="#21372a"></a-sphere>
@@ -199,13 +92,13 @@
     <a-cylinder position="2.0 1.1 -8" radius="0.14" height="2.2" color="#6a4128"></a-cylinder>
     <a-cone position="2.0 2.6 -8" radius-bottom="0.9" radius-top="0.1" height="2.0" color="#2a6638"></a-cone>
 
-    <!-- Extra struikjes -->
+    <!-- Struiken -->
     <a-sphere position="-1.8 0.35 -4.5" radius="0.35" color="#295936"></a-sphere>
     <a-sphere position="1.9 0.35 -5.2" radius="0.38" color="#2a5d37"></a-sphere>
     <a-sphere position="-2.6 0.3 -6.0" radius="0.30" color="#234d2f"></a-sphere>
     <a-sphere position="2.8 0.3 -6.2" radius="0.32" color="#234d2f"></a-sphere>
 
-    <!-- VUURVLIEGJE -->
+    <!-- Vuurvliegje -->
     <a-entity id="target" position="0 1.5 -3">
         <a-sphere
             id="fireflyGlow"
@@ -235,10 +128,35 @@
         </a-entity>
     </a-entity>
 
-    <!-- HANDCURSOR -->
-    <a-entity id="cursor" position="0 1.5 -2.8">
+    <!-- Visuele rechterarm -->
+    <a-sphere
+        id="shoulderJoint"
+        radius="0.10"
+        color="#d69a68">
+    </a-sphere>
 
-        <!-- hand-gloed -->
+    <a-cylinder
+        id="upperArm"
+        radius="0.085"
+        height="1"
+        color="#d9a06c">
+    </a-cylinder>
+
+    <a-sphere
+        id="elbowJoint"
+        radius="0.082"
+        color="#dca874">
+    </a-sphere>
+
+    <a-cylinder
+        id="forearm"
+        radius="0.072"
+        height="1"
+        color="#e4b17a">
+    </a-cylinder>
+
+    <!-- Hand -->
+    <a-entity id="cursor" position="0 1.5 -2.8">
         <a-sphere
             id="handGlow"
             radius="0.16"
@@ -247,543 +165,37 @@
             transparent="true">
         </a-sphere>
 
-        <!-- palm -->
         <a-sphere
-            radius="0.08"
+            radius="0.085"
+            scale="1.15 0.95 0.65"
             color="#f2c28b">
         </a-sphere>
 
-        <!-- wijsvinger -->
         <a-box
-            position="0.11 0.05 0"
-            width="0.14"
-            height="0.04"
-            depth="0.04"
+            position="0.12 0.035 0"
+            width="0.17"
+            height="0.042"
+            depth="0.042"
             color="#f2c28b">
         </a-box>
 
-        <!-- duim -->
         <a-box
-            position="0.02 -0.07 0"
+            position="0.03 -0.075 0"
             rotation="0 0 35"
-            width="0.08"
-            height="0.035"
-            depth="0.035"
+            width="0.085"
+            height="0.038"
+            depth="0.038"
             color="#eab77f">
         </a-box>
     </a-entity>
 
     <a-camera position="0 1.6 0"></a-camera>
-
 </a-scene>
 
-<script>
-
-const target = document.querySelector("#target");
-const cursor = document.querySelector("#cursor");
-
-const fireflyBody = document.querySelector("#fireflyBody");
-const fireflyGlow = document.querySelector("#fireflyGlow");
-const fireflyLight = document.querySelector("#fireflyLight");
-const handGlow = document.querySelector("#handGlow");
-
-const startButton = document.querySelector("#startButton");
-const saveButton = document.querySelector("#saveButton");
-const painButton = document.querySelector("#painButton");
-const painRateText = document.querySelector("#painRateText");
-const painCountText = document.querySelector("#painCountText");
-
-const statusText = document.querySelector("#statusText");
-const instructionText = document.querySelector("#instructionText");
-
-const countdown = document.querySelector("#countdown");
-
-const timeText = document.querySelector("#timeText");
-const gainText = document.querySelector("#gainText");
-const realYText = document.querySelector("#realYText");
-const visualYText = document.querySelector("#visualYText");
-const errorText = document.querySelector("#errorText");
-const meanErrorText = document.querySelector("#meanErrorText");
-
-
-// ======================================================
-// INSTELLINGEN
-// ======================================================
-
-const referenceX = 0;
-const referenceY = 1.5;
-
-const mouseScaleX = 0.003;
-const mouseScaleY = 0.003;
-
-const experimentDuration = 40;
-
-const minX = -1.8;
-const maxX = 1.8;
-const minY = 0.55;
-const maxY = 2.45;
-
-
-// ======================================================
-// STATUS
-// ======================================================
-
-let experimentRunning = false;
-let countdownRunning = false;
-let experimentFinished = false;
-
-let startTime = 0;
-let lastLogTime = 0;
-
-let realX = referenceX;
-let realY = referenceY;
-
-let data = [];
-
-let painPressTimes = [];
-let totalPainPresses = 0;
-
-let errorSum = 0;
-let errorCount = 0;
-
-
-// ======================================================
-// HULPFUNCTIES
-// ======================================================
-
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-}
-
-
-// ======================================================
-// POINTER LOCK / RELATIEVE MUISBEWEGING
-// ======================================================
-
-document.addEventListener("mousemove", function(event) {
-
-    if (!experimentRunning) {
-        return;
-    }
-
-    realX += event.movementX * mouseScaleX;
-    realY -= event.movementY * mouseScaleY;
-
-    realX = clamp(realX, minX, maxX);
-    realY = clamp(realY, minY, maxY);
-});
-
-
-// ======================================================
-// GAIN
-// ======================================================
-
-function getGain(t) {
-    if (t < 10) return 1.00;
-    if (t < 20) return 0.95;
-    if (t < 30) return 0.90;
-    return 0.85;
-}
-
-
-// ======================================================
-// PIJNKLIK REGISTREREN
-// ======================================================
-
-function registerPainPress() {
-
-    if (!experimentRunning) {
-        return;
-    }
-
-    const now = performance.now();
-    const elapsed = (now - startTime) / 1000;
-    const gain = getGain(elapsed);
-
-    painPressTimes.push(elapsed);
-    totalPainPresses++;
-    painCountText.innerText =
-    "Aantal pijndrukken: " + totalPainPresses;
-
-    data.push({
-        event: "pain_press",
-        time: elapsed,
-        gain: gain,
-
-        target_x: target.object3D.position.x,
-        target_y: target.object3D.position.y,
-
-        real_x: realX,
-        real_y: realY,
-
-        visual_x: cursor.object3D.position.x,
-        visual_y: cursor.object3D.position.y,
-
-        error_m: "",
-        error_cm: "",
-
-        pain_press: totalPainPresses
-    });
-}
-
-
-// toetsenbord: P = pijn
-document.addEventListener("keydown", function(event) {
-
-    if (event.code === "KeyP" && !event.repeat) {
-        registerPainPress();
-    }
-
-});
-
-
-// knop blijft óók werken, voor testdoeleinden
-painButton.addEventListener("click", function() {
-    registerPainPress();
-});
-    
-// ======================================================
-// COUNTDOWN
-// ======================================================
-
-function showCountdown() {
-
-    countdownRunning = true;
-
-    countdown.style.display = "flex";
-
-    statusText.innerText = "Kalibratie";
-    instructionText.innerText = "Bereid je voor. De hand start in het midden.";
-
-    countdown.innerText = "3";
-
-    setTimeout(function() {
-        countdown.innerText = "2";
-    }, 1000);
-
-    setTimeout(function() {
-        countdown.innerText = "1";
-    }, 2000);
-
-    setTimeout(function() {
-        countdown.innerText = "START";
-    }, 3000);
-
-    setTimeout(function() {
-
-        countdown.style.display = "none";
-
-        realX = referenceX;
-        realY = referenceY;
-
-        startTime = performance.now();
-        lastLogTime = startTime;
-
-        errorSum = 0;
-        errorCount = 0;
-        data = [];
-
-        painPressTimes = [];
-        totalPainPresses = 0;
-
-        painRateText.innerText =
-            "Pijnfrequentie: 0.00 /s";
-        
-        experimentRunning = true;
-        countdownRunning = false;
-        experimentFinished = false;
-
-        statusText.innerText = "Experiment loopt";
-        instructionText.innerText = "Volg het vuurvliegje zo nauwkeurig mogelijk.";
-
-        startButton.disabled = true;
-
-    }, 3500);
-}
-
-
-// ======================================================
-// START
-// ======================================================
-
-startButton.addEventListener("click", function() {
-
-    if (experimentRunning || countdownRunning) {
-        return;
-    }
-
-    document.body.requestPointerLock();
-
-    realX = referenceX;
-    realY = referenceY;
-
-    target.object3D.position.set(referenceX, referenceY, -3);
-    cursor.object3D.position.set(referenceX, referenceY, -2.8);
-
-    saveButton.disabled = true;
-
-    showCountdown();
-});
-
-
-// ======================================================
-// STOP
-// ======================================================
-
-function stopExperiment() {
-
-    experimentRunning = false;
-    experimentFinished = true;
-
-    if (document.pointerLockElement) {
-        document.exitPointerLock();
-    }
-
-    statusText.innerText = "Experiment klaar";
-    instructionText.innerText = "Je kunt de meetgegevens nu opslaan.";
-
-    startButton.disabled = false;
-    startButton.innerText = "Opnieuw starten";
-
-    saveButton.disabled = false;
-}
-
-
-// ======================================================
-// ANIMATIE
-// ======================================================
-
-function animate() {
-
-    const now = performance.now();
-
-    if (!experimentRunning) {
-
-        if (!experimentFinished) {
-            target.object3D.position.set(referenceX, referenceY, -3);
-            cursor.object3D.position.set(referenceX, referenceY, -2.8);
-        }
-
-        requestAnimationFrame(animate);
-        return;
-    }
-
-    const elapsed = (now - startTime) / 1000;
-
-    const painWindow = 2.0;
-
-    const recentPresses =
-    painPressTimes.filter(function(t) {
-        return elapsed - t <= painWindow && elapsed - t >= 0;
-    });
-
-    const painRate =
-    recentPresses.length / painWindow;
-
-    painRateText.innerText =
-    "Pijnfrequentie: " +
-    painRate.toFixed(2) +
-    " /s";
-
-    if (elapsed >= experimentDuration) {
-        timeText.innerText = "Tijd: 40.0 s / 40 s";
-        stopExperiment();
-        requestAnimationFrame(animate);
-        return;
-    }
-
-    const gain = getGain(elapsed);
-
-    // ---------------------------
-    // VUURVLIEGJE-BEWEGING
-    // Iets organischer dan alleen een bol op/neer
-    // ---------------------------
-
-    const targetX =
-        0.95 * Math.sin(elapsed * 0.85) +
-        0.18 * Math.sin(elapsed * 2.3);
-
-    const targetY =
-        referenceY +
-        0.55 * Math.sin(elapsed * 1.05) +
-        0.12 * Math.cos(elapsed * 2.1);
-
-    target.object3D.position.set(targetX, targetY, -3);
-
-    // ---------------------------
-    // VISUELE HANDPOSITIE
-    // ---------------------------
-
-    const visualX = realX;
-
-    const visualY =
-        referenceY +
-        gain * (realY - referenceY);
-
-    cursor.object3D.position.set(visualX, visualY, -2.8);
-
-    // ---------------------------
-    // TRACKINGFOUT
-    // ---------------------------
-
-    const dx = targetX - visualX;
-    const dy = targetY - visualY;
-
-    const errorMeters = Math.sqrt(dx * dx + dy * dy);
-    const errorCm = errorMeters * 100;
-
-    errorSum += errorCm;
-    errorCount++;
-
-    const meanErrorCm = errorSum / errorCount;
-
-    // ---------------------------
-    // FEEDBACK OP BASIS VAN NABIJHEID
-    // ---------------------------
-
-    if (errorCm < 15) {
-        fireflyBody.setAttribute("color", "#fff58a");
-        fireflyBody.setAttribute("material", "shader: standard; emissive: #fff58a; emissiveIntensity: 2.5");
-        fireflyGlow.setAttribute("scale", "1.35 1.35 1.35");
-        fireflyGlow.setAttribute("opacity", "0.45");
-        fireflyLight.setAttribute("light", "type: point; color: #fff58a; intensity: 1.8; distance: 3.5");
-        handGlow.setAttribute("opacity", "0.22");
-    } else {
-        fireflyBody.setAttribute("color", "#ffe35a");
-        fireflyBody.setAttribute("material", "shader: standard; emissive: #ffd54a; emissiveIntensity: 1.8");
-        fireflyGlow.setAttribute("scale", "1 1 1");
-        fireflyGlow.setAttribute("opacity", "0.30");
-        fireflyLight.setAttribute("light", "type: point; color: #ffd85e; intensity: 1.2; distance: 3");
-        handGlow.setAttribute("opacity", "0.15");
-    }
-
-    // ---------------------------
-    // DISPLAY
-    // ---------------------------
-
-    timeText.innerText =
-        "Tijd: " + elapsed.toFixed(1) + " s / 40 s";
-
-    gainText.innerText =
-        "Gain: " + gain.toFixed(2);
-
-    realYText.innerText =
-        "Werkelijke Y: " + realY.toFixed(3);
-
-    visualYText.innerText =
-        "Getoonde Y: " + visualY.toFixed(3);
-
-    errorText.innerHTML =
-        "<strong>Trackingfout: " + errorCm.toFixed(1) + " cm</strong>";
-
-    meanErrorText.innerText =
-        "Gemiddelde fout: " + meanErrorCm.toFixed(1) + " cm";
-
-    // ---------------------------
-    // LOGGING ~60 Hz
-    // ---------------------------
-
-    if (now - lastLogTime >= 16) {
-
-        data.push({
-            time: elapsed,
-            gain: gain,
-            target_x: targetX,
-            target_y: targetY,
-            real_x: realX,
-            real_y: realY,
-            visual_x: visualX,
-            visual_y: visualY,
-            error_m: errorMeters,
-            error_cm: errorCm
-        });
-
-        lastLogTime = now;
-    }
-
-    requestAnimationFrame(animate);
-}
-
-animate();
-
-
-// ======================================================
-// CSV OPSLAAN
-// ======================================================
-
-saveButton.addEventListener("click", function() {
-
-    let csv =
-        "event,time_s,gain," +
-        "target_x,target_y," +
-        "real_x,real_y," +
-        "visual_x,visual_y," +
-        "error_m,error_cm," +
-        "pain_press\n";
-
-
-    data.forEach(function(row) {
-
-        csv +=
-
-            (row.event || "frame") + "," +
-
-            Number(row.time).toFixed(4) + "," +
-
-            Number(row.gain).toFixed(2) + "," +
-
-            Number(row.target_x).toFixed(4) + "," +
-            Number(row.target_y).toFixed(4) + "," +
-
-            Number(row.real_x).toFixed(4) + "," +
-            Number(row.real_y).toFixed(4) + "," +
-
-            Number(row.visual_x).toFixed(4) + "," +
-            Number(row.visual_y).toFixed(4) + "," +
-
-            (
-                row.error_m === "" ||
-                row.error_m === undefined
-                ? ""
-                : Number(row.error_m).toFixed(4)
-            ) + "," +
-
-            (
-                row.error_cm === "" ||
-                row.error_cm === undefined
-                ? ""
-                : Number(row.error_cm).toFixed(2)
-            ) + "," +
-
-            (
-                row.pain_press === undefined
-                ? ""
-                : row.pain_press
-            ) +
-
-            "\n";
-    });
-
-
-    const blob = new Blob(
-        [csv],
-        { type: "text/csv;charset=utf-8;" }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "vuurvliegje_volgtaak.csv";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-});
-
-</script>
+<script src="js/config.js"></script>
+<script src="js/arm.js"></script>
+<script src="js/logging.js"></script>
+<script src="js/experiment.js"></script>
 
 </body>
 </html>
