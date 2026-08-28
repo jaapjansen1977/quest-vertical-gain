@@ -28,14 +28,8 @@ button {
     border-radius: 8px;
 }
 
-#startButton {
-    background: #7bd389;
-}
-
-#saveButton {
-    background: #d8dbe2;
-}
-
+#startButton { background: #7bd389; }
+#saveButton { background: #d8dbe2; }
 #painButton {
     background: #d75b5b;
     color: white;
@@ -66,4 +60,43 @@ hr {
     border: none;
     border-top: 1px solid rgba(255, 255, 255, 0.18);
     margin: 10px 0;
+}
+
+#armOverlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 5000;
+    pointer-events: none;
+    overflow: visible;
+}
+
+#armShape {
+    fill: #b77b56;
+    stroke: #8f5d40;
+    stroke-width: 3;
+    opacity: 0.98;
+}
+
+#elbowShape {
+    fill: #b77b56;
+    stroke: #8f5d40;
+    stroke-width: 3;
+}
+
+#palmShape {
+    fill: #c88b62;
+    stroke: #8f5d40;
+    stroke-width: 3;
+}
+
+.finger {
+    stroke: #c88b62;
+    stroke-width: 24;
+    stroke-linecap: round;
+}
+
+.thumb {
+    stroke-width: 22;
 }
