@@ -24,8 +24,8 @@ window.ArmVisual = (function () {
         const midpoint = new THREE.Vector3().addVectors(shoulderPos, handPos).multiplyScalar(0.5);
         const line = new THREE.Vector3().subVectors(handPos, shoulderPos);
 
-        // Een subtiele knik naar beneden/rechts, zodat de arm er menselijker uitziet
-        // dan één rechte staaf. Dit is visuele IK, geen biomechanisch model.
+        // Subtiele knik, zodat de arm niet als één rechte staaf oogt.
+        // De oorsprong ligt nu bewust onder de onderrand van het beeld.
         const perpendicular = new THREE.Vector3(line.y, -line.x, 0);
         if (perpendicular.lengthSq() > 0.000001) perpendicular.normalize();
 
@@ -45,6 +45,9 @@ window.ArmVisual = (function () {
 
         const s = window.APP_CONFIG.arm.shoulder;
         shoulder.object3D.position.set(s.x, s.y, s.z);
+
+        const handScale = window.APP_CONFIG.arm.handScale || 1;
+        cursor.object3D.scale.set(handScale, handScale, handScale);
     }
 
     function update(handX, handY, handZ) {
@@ -72,6 +75,8 @@ window.ArmVisual = (function () {
             window.APP_CONFIG.arm.forearmRadius
         );
 
+        const handScale = window.APP_CONFIG.arm.handScale || 1;
+        cursor.object3D.scale.set(handScale, handScale, handScale);
         cursor.object3D.position.copy(handPos);
     }
 
