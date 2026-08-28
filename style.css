@@ -85,10 +85,9 @@ hr {
     stroke-width: 3;
 }
 
-/* De hand is bewust licht transparant, zodat het vuurvliegje zichtbaar blijft
-   wanneer de gebruiker er precies overheen beweegt. */
+/* Hand wat doorzichtig, maar niet zo sterk dat de lichaamsillusie verdwijnt. */
 #handShape {
-    opacity: 0.68;
+    opacity: 0.58;
 }
 
 #palmShape {
@@ -105,4 +104,18 @@ hr {
 
 .thumb {
     stroke-width: 22;
+}
+
+/* Extra schermlaag voor het vuurvliegje. Deze staat bewust NA de hand in de SVG,
+   zodat het doel nooit volledig door de hand wordt afgedekt. */
+#targetGlow2D {
+    fill: #ffd84f;
+    opacity: 0.24;
+}
+
+#targetCore2D {
+    fill: #fff36a;
+    stroke: #fff9c4;
+    stroke-width: 3;
+    opacity: 0.98;
 }
