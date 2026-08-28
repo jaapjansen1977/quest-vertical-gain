@@ -20,18 +20,31 @@ window.ArmVisual = (function () {
         entity.object3D.quaternion.setFromUnitVectors(up, direction.clone().normalize());
     }
 
+    function projectTaskPointToForeground(handX, handY, taskZ) {
+        const cfg = window.APP_CONFIG.arm;
+        const nearZ = cfg.visualHandZ;
+
+        // Zelfde beeld-/schermpositie als het punt op het taakvlak,
+        // maar dichter bij de camera. Hierdoor blijft de hand optisch
+        // bij dezelfde cursorpositie terwijl hij veel groter oogt.
+        const ratio = Math.abs(nearZ / taskZ);
+        const x = handX * ratio;
+        const y = cfg.cameraY + (handY - cfg.cameraY) * ratio;
+
+        return new THREE.Vector3(x, y, nearZ);
+    }
+
     function computeElbow(shoulderPos, handPos) {
         const midpoint = new THREE.Vector3().addVectors(shoulderPos, handPos).multiplyScalar(0.5);
         const line = new THREE.Vector3().subVectors(handPos, shoulderPos);
 
-        // Subtiele knik, zodat de arm niet als één rechte staaf oogt.
-        // De oorsprong ligt nu bewust onder de onderrand van het beeld.
         const perpendicular = new THREE.Vector3(line.y, -line.x, 0);
         if (perpendicular.lengthSq() > 0.000001) perpendicular.normalize();
 
-        const bend = window.APP_CONFIG.arm.elbowBend;
-        midpoint.add(perpendicular.multiplyScalar(bend));
-        midpoint.z = (shoulderPos.z + handPos.z) * 0.5;
+        midpoint.add(perpendicular.multiplyScalar(window.APP_CONFIG.arm.elbowBend));
+
+        // Elleboog iets dichter bij de gebruiker dan puur lineair midden.
+        midpoint.z += 0.06;
 
         return midpoint;
     }
@@ -46,37 +59,25 @@ window.ArmVisual = (function () {
         const s = window.APP_CONFIG.arm.shoulder;
         shoulder.object3D.position.set(s.x, s.y, s.z);
 
-        const handScale = window.APP_CONFIG.arm.handScale || 1;
-        cursor.object3D.scale.set(handScale, handScale, handScale);
+        const scale = window.APP_CONFIG.arm.handScale;
+        cursor.object3D.scale.set(scale, scale, scale);
     }
 
     function update(handX, handY, handZ) {
         if (!shoulder) init();
 
-        const s = window.APP_CONFIG.arm.shoulder;
+        const cfg = window.APP_CONFIG.arm;
+        const s = cfg.shoulder;
         const shoulderPos = new THREE.Vector3(s.x, s.y, s.z);
-        const handPos = new THREE.Vector3(handX, handY, handZ);
+        const handPos = projectTaskPointToForeground(handX, handY, handZ);
         const elbowPos = computeElbow(shoulderPos, handPos);
 
         shoulder.object3D.position.copy(shoulderPos);
         elbow.object3D.position.copy(elbowPos);
 
-        setCylinderBetween(
-            upperArm,
-            shoulderPos,
-            elbowPos,
-            window.APP_CONFIG.arm.upperArmRadius
-        );
+        setCylinderBetween(upperArm, shoulderPos, elbowPos, cfg.upperArmRadius);
+        setCylinderBetween(forearm, elbowPos, handPos, cfg.forearmRadius);
 
-        setCylinderBetween(
-            forearm,
-            elbowPos,
-            handPos,
-            window.APP_CONFIG.arm.forearmRadius
-        );
-
-        const handScale = window.APP_CONFIG.arm.handScale || 1;
-        cursor.object3D.scale.set(handScale, handScale, handScale);
         cursor.object3D.position.copy(handPos);
     }
 
