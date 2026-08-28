@@ -21,18 +21,22 @@ window.APP_CONFIG = {
     ],
 
     arm: {
-        // De arm begint bewust net onder de onderrand van het beeld,
-        // iets rechts van het midden. Daardoor lijkt hij vanuit het lichaam
-        // van de gebruiker het beeld in te komen.
-        shoulder: { x: 0.72, y: -0.58, z: -2.72 },
+        // FIRST-PERSON VISUALISATIE
+        // De meet-/cursorcoordinaten blijven op het taakvlak (-2.8 m),
+        // maar de arm wordt veel dichter bij de camera getekend.
+        // Daardoor vult hij het beeld zoals een eigen arm dat doet.
+        cameraY: 1.6,
+        visualHandZ: -0.92,
 
-        // Kleine laterale knik voor een natuurlijke ellebooglijn.
-        elbowBend: 0.12,
+        // Schouder/origin ligt bewust onder de onderrand en iets rechts.
+        shoulder: { x: 0.22, y: 1.16, z: -0.34 },
 
-        // Groter en voller dan de eerste versie, zodat de arm echt
-        // een substantieel deel van het beeld inneemt.
-        upperArmRadius: 0.15,
-        forearmRadius: 0.115,
-        handScale: 1.55
+        // Kleine knik zodat de arm niet mechanisch recht is.
+        elbowBend: 0.055,
+
+        // In meters; omdat de arm dicht bij de camera staat ogen deze fors.
+        upperArmRadius: 0.105,
+        forearmRadius: 0.082,
+        handScale: 2.15
     }
 };
