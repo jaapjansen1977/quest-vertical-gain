@@ -4,27 +4,34 @@ window.APP_CONFIG = {
     targetZ: -3.0,
     handZ: -2.8,
 
-    mouseScaleX: 0.003,
+    // Alleen verticale muisbeweging wordt gebruikt.
+    mouseScaleX: 0.0,
     mouseScaleY: 0.003,
 
-    experimentDuration: 40,
-    minX: -1.8,
-    maxX: 1.8,
+    experimentDuration: 120,
+    minX: 0,
+    maxX: 0,
     minY: 0.55,
     maxY: 2.45,
 
+    // Elke gainstap duurt 20 seconden.
+    // 0-20: 1.00
+    // 20-40: 0.95
+    // 40-60: 0.90
+    // 60-80: 0.85
+    // 80-100: 0.80
+    // 100-120: 0.75
     gainSchedule: [
-        { until: 10, gain: 1.00 },
-        { until: 20, gain: 0.95 },
-        { until: 30, gain: 0.90 },
-        { until: 40, gain: 0.85 }
+        { until: 20, gain: 1.00 },
+        { until: 40, gain: 0.95 },
+        { until: 60, gain: 0.90 },
+        { until: 80, gain: 0.85 },
+        { until: 100, gain: 0.80 },
+        { until: 120, gain: 0.75 }
     ],
 
     arm: {
         // FIRST-PERSON VISUALISATIE
-        // De meet-/cursorcoordinaten blijven op het taakvlak (-2.8 m),
-        // maar de arm wordt veel dichter bij de camera getekend.
-        // Daardoor vult hij het beeld zoals een eigen arm dat doet.
         cameraY: 1.6,
         visualHandZ: -0.92,
 
@@ -34,7 +41,6 @@ window.APP_CONFIG = {
         // Kleine knik zodat de arm niet mechanisch recht is.
         elbowBend: 0.055,
 
-        // In meters; omdat de arm dicht bij de camera staat ogen deze fors.
         upperArmRadius: 0.105,
         forearmRadius: 0.082,
         handScale: 2.15
