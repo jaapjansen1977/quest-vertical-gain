@@ -85,6 +85,12 @@ hr {
     stroke-width: 3;
 }
 
+/* De hand is bewust licht transparant, zodat het vuurvliegje zichtbaar blijft
+   wanneer de gebruiker er precies overheen beweegt. */
+#handShape {
+    opacity: 0.68;
+}
+
 #palmShape {
     fill: #c88b62;
     stroke: #8f5d40;
