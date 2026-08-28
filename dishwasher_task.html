@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Borden uitruimen - verticale gain taak</title>
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <link rel="stylesheet" href="dishwasher_style.css?v=1">
+</head>
+<body>
+
+<div id="countdown">3</div>
+
+<div id="info">
+    <div><strong>Borden uitruimen</strong></div>
+    <div id="statusText">Klaar voor start</div>
+    <div id="instructionText">Klik op Start experiment.</div>
+    <div id="taskText">Pak beneden een bord en zet het boven op de plank.</div>
+
+    <hr>
+    <div id="timeText">Tijd: 0.0 s / 120 s</div>
+    <div id="gainText">Gain: 1.00</div>
+    <div id="realYText">Werkelijke Y: 1.500</div>
+    <div id="visualYText">Getoonde Y: 1.500</div>
+    <div id="plateCountText">Borden geplaatst: 0</div>
+
+    <button id="startButton">Start experiment</button>
+    <button id="saveButton" disabled>CSV opslaan</button>
+    <button id="painButton">Pijn</button>
+    <div id="painCountText">Aantal pijndrukken: 0</div>
+</div>
+
+<div id="pickupHint">Beneden: bord oppakken</div>
+<div id="releaseHint">Boven: bord op plank zetten</div>
+
+<!-- Grote first-person arm als 2D-overlay. Het bord wordt tijdens dragen
+     eveneens als overlay getekend zodat het netjes met de hand meebeweegt. -->
+<svg id="armOverlay" aria-hidden="true">
+    <path id="armShape"></path>
+    <circle id="elbowShape"></circle>
+
+    <g id="carriedPlate">
+        <ellipse class="rim" cx="0" cy="0" rx="57" ry="44"></ellipse>
+        <ellipse class="inner" cx="0" cy="0" rx="39" ry="28"></ellipse>
+    </g>
+
+    <g id="handShape">
+        <ellipse id="palmShape"></ellipse>
+        <line class="finger finger1"></line>
+        <line class="finger finger2"></line>
+        <line class="finger finger3"></line>
+        <line class="finger finger4"></line>
+        <line class="finger thumb"></line>
+    </g>
+</svg>
+
+<a-scene id="scene" fog="type: linear; color: #d9e0e5; near: 8; far: 20">
+    <a-sky color="#dce5ea"></a-sky>
+    <a-entity light="type: ambient; color: #ffffff; intensity: 0.9"></a-entity>
+    <a-entity light="type: directional; color: #ffffff; intensity: 0.55" position="-2 5 2"></a-entity>
+
+    <!-- Keukenwand en vloer -->
+    <a-plane position="0 1.65 -4.0" width="8" height="4.0" color="#e8e2d9"></a-plane>
+    <a-plane position="0 0 -3.0" rotation="-90 0 0" width="8" height="8" color="#b9b5ad"></a-plane>
+
+    <!-- Aanrechtblokken links/rechts houden het midden vrij. -->
+    <a-box position="-2.35 0.78 -3.45" width="2.2" height="1.55" depth="0.75" color="#8fa0a8"></a-box>
+    <a-box position="2.35 0.78 -3.45" width="2.2" height="1.55" depth="0.75" color="#8fa0a8"></a-box>
+    <a-box position="-2.35 1.57 -3.35" width="2.3" height="0.10" depth="0.95" color="#d7d3cb"></a-box>
+    <a-box position="2.35 1.57 -3.35" width="2.3" height="0.10" depth="0.95" color="#d7d3cb"></a-box>
+
+    <!-- Open vaatwasser in het midden onderin. -->
+    <a-box position="0 0.55 -3.55" width="1.45" height="1.05" depth="0.75" color="#6f7b82"></a-box>
+    <a-box position="0 0.18 -2.95" rotation="-68 0 0" width="1.45" height="0.08" depth="1.05" color="#aab3b8"></a-box>
+    <a-box position="0 0.48 -2.92" width="1.18" height="0.05" depth="0.70" color="#7f8c93"></a-box>
+    <a-box position="-0.48 0.56 -2.92" width="0.04" height="0.25" depth="0.70" color="#c5ccd0"></a-box>
+    <a-box position="0.48 0.56 -2.92" width="0.04" height="0.25" depth="0.70" color="#c5ccd0"></a-box>
+
+    <!-- Bord dat klaarstaat om te worden gepakt. -->
+    <a-entity id="waitingPlate" position="0 0.68 -2.87">
+        <a-circle radius="0.27" color="#f7f7f4" material="side: double"></a-circle>
+        <a-ring radius-inner="0.17" radius-outer="0.21" color="#d5d6d2" material="side: double"></a-ring>
+    </a-entity>
+
+    <!-- Plank bovenin; de drempel ligt ongeveer ter hoogte van de plank. -->
+    <a-box position="0 2.23 -3.45" width="2.75" height="0.10" depth="0.58" color="#9b7657"></a-box>
+    <a-box position="-1.25 2.06 -3.50" width="0.08" height="0.35" depth="0.55" color="#71543e"></a-box>
+    <a-box position="1.25 2.06 -3.50" width="0.08" height="0.35" depth="0.55" color="#71543e"></a-box>
+    <a-entity id="placedPlates"></a-entity>
+
+    <!-- Onzichtbare cursor: arm.js gebruikt deze voor de handpositie/logging. -->
+    <a-entity id="cursor" position="0 1.5 -2.8" visible="false">
+        <a-sphere id="handGlow" radius="0.16" opacity="0"></a-sphere>
+    </a-entity>
+
+    <a-camera id="mainCamera" position="0 1.6 0"></a-camera>
+</a-scene>
+
+<script src="js/dishwasher_config.js?v=1"></script>
+<script src="js/arm.js?v=6"></script>
+<script src="js/dishwasher_logging.js?v=1"></script>
+<script src="js/dishwasher_task.js?v=1"></script>
+
+</body>
+</html>
