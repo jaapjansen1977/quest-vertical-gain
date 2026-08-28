@@ -61,10 +61,9 @@
     document.addEventListener('mousemove', function (event) {
         if (!experimentRunning) return;
 
-        realX += event.movementX * cfg.mouseScaleX;
+        // Alleen verticale beweging: X blijft altijd exact in het midden.
+        realX = cfg.referenceX;
         realY -= event.movementY * cfg.mouseScaleY;
-
-        realX = clamp(realX, cfg.minX, cfg.maxX);
         realY = clamp(realY, cfg.minY, cfg.maxY);
     });
 
@@ -96,9 +95,7 @@
     }
 
     document.addEventListener('keydown', function (event) {
-        if (event.code === 'KeyP' && !event.repeat) {
-            registerPainPress();
-        }
+        if (event.code === 'KeyP' && !event.repeat) registerPainPress();
     });
 
     painButton.addEventListener('click', registerPainPress);
@@ -137,7 +134,7 @@
             experimentFinished = false;
 
             statusText.innerText = 'Experiment loopt';
-            instructionText.innerText = 'Volg het vuurvliegje zo nauwkeurig mogelijk.';
+            instructionText.innerText = 'Volg het vuurvliegje alleen omhoog en omlaag.';
             startButton.disabled = true;
         }, 3500);
     }
@@ -158,9 +155,7 @@
         experimentRunning = false;
         experimentFinished = true;
 
-        if (document.pointerLockElement) {
-            document.exitPointerLock();
-        }
+        if (document.pointerLockElement) document.exitPointerLock();
 
         statusText.innerText = 'Experiment klaar';
         instructionText.innerText = 'Je kunt de meetgegevens nu opslaan.';
@@ -214,10 +209,10 @@
 
         const gain = getGain(elapsed);
 
-        const targetX =
-            0.95 * Math.sin(elapsed * 0.85) +
-            0.18 * Math.sin(elapsed * 2.3);
+        // Geen horizontale beweging meer.
+        const targetX = cfg.referenceX;
 
+        // Verticale beweging blijft gevarieerd, maar puur in Y.
         const targetY =
             cfg.referenceY +
             0.55 * Math.sin(elapsed * 1.05) +
@@ -225,7 +220,7 @@
 
         target.object3D.position.set(targetX, targetY, cfg.targetZ);
 
-        const visualX = realX;
+        const visualX = cfg.referenceX;
         const visualY = cfg.referenceY + gain * (realY - cfg.referenceY);
 
         window.ArmVisual.update(visualX, visualY, cfg.handZ);
