@@ -37,8 +37,7 @@
     <div id="painCountText">Aantal pijndrukken: 0</div>
 </div>
 
-<!-- Grote first-person arm als 2D-overlay. Dit is bewust schermgebonden,
-     zodat de arm vanaf de onderrand groot in beeld blijft. -->
+<!-- Grote first-person arm als 2D-overlay. -->
 <svg id="armOverlay" aria-hidden="true">
     <path id="armShape"></path>
     <circle id="elbowShape"></circle>
@@ -87,11 +86,12 @@
     <a-sphere position="-2.6 0.3 -6.0" radius="0.30" color="#234d2f"></a-sphere>
     <a-sphere position="2.8 0.3 -6.2" radius="0.32" color="#234d2f"></a-sphere>
 
+    <!-- Vuurvliegje iets groter gemaakt, zodat het ook bij overlap met de hand zichtbaar blijft. -->
     <a-entity id="target" position="0 1.5 -3">
-        <a-sphere id="fireflyGlow" radius="0.18" color="#ffd54a" opacity="0.30" transparent="true"></a-sphere>
-        <a-sphere id="fireflyBody" radius="0.07" color="#ffe35a" material="shader: standard; emissive: #ffd54a; emissiveIntensity: 1.8"></a-sphere>
-        <a-sphere position="0.05 0.03 0.03" radius="0.025" color="#fff6c7" material="shader: standard; emissive: #fff6c7; emissiveIntensity: 2.0"></a-sphere>
-        <a-entity id="fireflyLight" light="type: point; color: #ffd85e; intensity: 1.2; distance: 3"></a-entity>
+        <a-sphere id="fireflyGlow" radius="0.29" color="#ffd54a" opacity="0.34" transparent="true"></a-sphere>
+        <a-sphere id="fireflyBody" radius="0.115" color="#ffe35a" material="shader: standard; emissive: #ffd54a; emissiveIntensity: 2.2"></a-sphere>
+        <a-sphere position="0.075 0.045 0.045" radius="0.04" color="#fff6c7" material="shader: standard; emissive: #fff6c7; emissiveIntensity: 2.4"></a-sphere>
+        <a-entity id="fireflyLight" light="type: point; color: #ffd85e; intensity: 1.5; distance: 3.5"></a-entity>
     </a-entity>
 
     <!-- Onzichtbare cursor blijft bestaan voor logging en taakcoordinaten. -->
