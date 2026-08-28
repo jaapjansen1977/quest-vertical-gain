@@ -14,7 +14,6 @@
 
 <div id="info">
     <div><strong>Vuurvliegje-volgtaak</strong></div>
-
     <div id="statusText">Klaar voor start</div>
     <div id="instructionText">Klik op Start experiment.</div>
 
@@ -38,158 +37,69 @@
     <div id="painCountText">Aantal pijndrukken: 0</div>
 </div>
 
+<!-- Grote first-person arm als 2D-overlay. Dit is bewust schermgebonden,
+     zodat de arm vanaf de onderrand groot in beeld blijft. -->
+<svg id="armOverlay" aria-hidden="true">
+    <path id="armShape"></path>
+    <circle id="elbowShape"></circle>
+    <g id="handShape">
+        <ellipse id="palmShape"></ellipse>
+        <line class="finger finger1"></line>
+        <line class="finger finger2"></line>
+        <line class="finger finger3"></line>
+        <line class="finger finger4"></line>
+        <line class="finger thumb"></line>
+    </g>
+</svg>
+
 <a-scene
     id="scene"
     fog="type: linear; color: #132433; near: 6; far: 18">
 
-    <!-- Lucht -->
     <a-sky color="#102235"></a-sky>
 
-    <!-- Licht -->
     <a-entity light="type: ambient; color: #9db7c6; intensity: 0.75"></a-entity>
     <a-entity light="type: directional; color: #dce9f5; intensity: 0.45" position="-2 4 1"></a-entity>
 
-    <!-- Grond -->
-    <a-plane
-        position="0 0 -3"
-        rotation="-90 0 0"
-        width="26"
-        height="26"
-        color="#2f5f38">
-    </a-plane>
+    <a-plane position="0 0 -3" rotation="-90 0 0" width="26" height="26" color="#2f5f38"></a-plane>
+    <a-plane position="0 0.01 -3" rotation="-90 0 0" width="4" height="10" color="#6b5b43"></a-plane>
 
-    <!-- Open plek / bospad -->
-    <a-plane
-        position="0 0.01 -3"
-        rotation="-90 0 0"
-        width="4"
-        height="10"
-        color="#6b5b43">
-    </a-plane>
-
-    <!-- Verre heuvels -->
     <a-sphere position="-6 1.2 -12" radius="3.0" color="#20382b"></a-sphere>
     <a-sphere position="0 1.4 -13" radius="3.5" color="#1c3327"></a-sphere>
     <a-sphere position="6 1.1 -12" radius="3.0" color="#21372a"></a-sphere>
 
-    <!-- Bomen links -->
     <a-cylinder position="-3 1.2 -4" radius="0.15" height="2.4" color="#6a4128"></a-cylinder>
     <a-cone position="-3 2.8 -4" radius-bottom="1.0" radius-top="0.1" height="2.2" color="#2c6d3b"></a-cone>
-
     <a-cylinder position="-4.5 1.3 -6" radius="0.17" height="2.6" color="#6a4128"></a-cylinder>
     <a-cone position="-4.5 3.0 -6" radius-bottom="1.1" radius-top="0.1" height="2.4" color="#2e7440"></a-cone>
-
     <a-cylinder position="-2.2 1.1 -7.5" radius="0.14" height="2.2" color="#6a4128"></a-cylinder>
     <a-cone position="-2.2 2.6 -7.5" radius-bottom="0.9" radius-top="0.1" height="2.0" color="#2b6a3b"></a-cone>
 
-    <!-- Bomen rechts -->
     <a-cylinder position="3 1.2 -4.5" radius="0.15" height="2.4" color="#6a4128"></a-cylinder>
     <a-cone position="3 2.8 -4.5" radius-bottom="1.0" radius-top="0.1" height="2.2" color="#2c6d3b"></a-cone>
-
     <a-cylinder position="4.6 1.35 -6.8" radius="0.18" height="2.7" color="#6a4128"></a-cylinder>
     <a-cone position="4.6 3.1 -6.8" radius-bottom="1.15" radius-top="0.1" height="2.4" color="#327442"></a-cone>
-
     <a-cylinder position="2.0 1.1 -8" radius="0.14" height="2.2" color="#6a4128"></a-cylinder>
     <a-cone position="2.0 2.6 -8" radius-bottom="0.9" radius-top="0.1" height="2.0" color="#2a6638"></a-cone>
 
-    <!-- Struiken -->
     <a-sphere position="-1.8 0.35 -4.5" radius="0.35" color="#295936"></a-sphere>
     <a-sphere position="1.9 0.35 -5.2" radius="0.38" color="#2a5d37"></a-sphere>
     <a-sphere position="-2.6 0.3 -6.0" radius="0.30" color="#234d2f"></a-sphere>
     <a-sphere position="2.8 0.3 -6.2" radius="0.32" color="#234d2f"></a-sphere>
 
-    <!-- Vuurvliegje -->
     <a-entity id="target" position="0 1.5 -3">
-        <a-sphere
-            id="fireflyGlow"
-            radius="0.18"
-            color="#ffd54a"
-            opacity="0.30"
-            transparent="true">
-        </a-sphere>
-
-        <a-sphere
-            id="fireflyBody"
-            radius="0.07"
-            color="#ffe35a"
-            material="shader: standard; emissive: #ffd54a; emissiveIntensity: 1.8">
-        </a-sphere>
-
-        <a-sphere
-            position="0.05 0.03 0.03"
-            radius="0.025"
-            color="#fff6c7"
-            material="shader: standard; emissive: #fff6c7; emissiveIntensity: 2.0">
-        </a-sphere>
-
-        <a-entity
-            id="fireflyLight"
-            light="type: point; color: #ffd85e; intensity: 1.2; distance: 3">
-        </a-entity>
+        <a-sphere id="fireflyGlow" radius="0.18" color="#ffd54a" opacity="0.30" transparent="true"></a-sphere>
+        <a-sphere id="fireflyBody" radius="0.07" color="#ffe35a" material="shader: standard; emissive: #ffd54a; emissiveIntensity: 1.8"></a-sphere>
+        <a-sphere position="0.05 0.03 0.03" radius="0.025" color="#fff6c7" material="shader: standard; emissive: #fff6c7; emissiveIntensity: 2.0"></a-sphere>
+        <a-entity id="fireflyLight" light="type: point; color: #ffd85e; intensity: 1.2; distance: 3"></a-entity>
     </a-entity>
 
-    <!-- Visuele rechterarm -->
-    <a-sphere
-        id="shoulderJoint"
-        radius="0.10"
-        color="#d69a68">
-    </a-sphere>
-
-    <a-cylinder
-        id="upperArm"
-        radius="0.085"
-        height="1"
-        color="#d9a06c">
-    </a-cylinder>
-
-    <a-sphere
-        id="elbowJoint"
-        radius="0.082"
-        color="#dca874">
-    </a-sphere>
-
-    <a-cylinder
-        id="forearm"
-        radius="0.072"
-        height="1"
-        color="#e4b17a">
-    </a-cylinder>
-
-    <!-- Hand -->
-    <a-entity id="cursor" position="0 1.5 -2.8">
-        <a-sphere
-            id="handGlow"
-            radius="0.16"
-            color="#ffe7b6"
-            opacity="0.15"
-            transparent="true">
-        </a-sphere>
-
-        <a-sphere
-            radius="0.085"
-            scale="1.15 0.95 0.65"
-            color="#f2c28b">
-        </a-sphere>
-
-        <a-box
-            position="0.12 0.035 0"
-            width="0.17"
-            height="0.042"
-            depth="0.042"
-            color="#f2c28b">
-        </a-box>
-
-        <a-box
-            position="0.03 -0.075 0"
-            rotation="0 0 35"
-            width="0.085"
-            height="0.038"
-            depth="0.038"
-            color="#eab77f">
-        </a-box>
+    <!-- Onzichtbare cursor blijft bestaan voor logging en taakcoordinaten. -->
+    <a-entity id="cursor" position="0 1.5 -2.8" visible="false">
+        <a-sphere id="handGlow" radius="0.16" opacity="0"></a-sphere>
     </a-entity>
 
-    <a-camera position="0 1.6 0"></a-camera>
+    <a-camera id="mainCamera" position="0 1.6 0"></a-camera>
 </a-scene>
 
 <script src="js/config.js"></script>
