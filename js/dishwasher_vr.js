@@ -150,13 +150,13 @@
 
         waitingPlate.setAttribute('visible', true);
         carriedPlate.setAttribute('visible', false);
-        pickupZone.setAttribute('visible', true);
+        pickupZone.setAttribute('visible', false);
         releaseZone.setAttribute('visible', false);
 
         setHud(
             'Experiment loopt.\n' +
-            'Beweeg naar het bord in de groene zone.\n' +
-            'Het bord wordt automatisch gepakt.'
+            'Raak het bord met je hand aan en druk op de trigger.\n' +
+            'Breng het bord daarna naar de plank en druk opnieuw.'
         );
     }
 
@@ -165,7 +165,7 @@
         waitingPlate.setAttribute('visible', false);
         carriedPlate.setAttribute('visible', true);
         pickupZone.setAttribute('visible', false);
-        releaseZone.setAttribute('visible', true);
+        releaseZone.setAttribute('visible', false);
 
         window.DishwasherVRData.add({
             event: 'pickup',
@@ -222,7 +222,7 @@
 
         setTimeout(function () {
             waitingPlate.setAttribute('visible', true);
-            pickupZone.setAttribute('visible', true);
+            pickupZone.setAttribute('visible', false);
             waitingRespawn = false;
         }, cfg.respawnDelayMs);
     }
@@ -251,21 +251,34 @@
             const now = performance.now();
             const elapsed = (now - startTime) / 1000;
             const gain = getGain(elapsed);
-            const visualY = startHand.y + gain * (controller.y - startHand.y);
+
+            const visualY = Math.max(
+                cfg.minVisualY,
+                Math.min(
+                    cfg.maxVisualY,
+                    startHand.y + gain * (controller.y - startHand.y)
+                )
+            );
+
             const angle = armElevationDeg(controller);
 
-            // Tijdelijke robuuste fallback voor testen:
-            // trigger pakt/neerzet alleen wanneer je redelijk in de buurt bent.
+            // Tijdens de taak bepaalt de trigger de interactie.
+            // Niet dragen -> bord oppakken.
+            // Wel dragen -> bord loslaten / op de plank zetten.
             if (!carrying && !waitingRespawn) {
-                const rel = relationToWorldObject(controller, waitingPlate, pickupWorld);
-                if (insideBox(rel, 0.70, 0.70, 0.70)) {
-                    pickup(elapsed, controller, visualY, angle, gain);
-                }
+                pickup(elapsed, controller, visualY, angle, gain);
+                setHud(
+                    'Bord gepakt.\n' +
+                    'Breng het bord naar de plank\n' +
+                    'en druk opnieuw op de trigger.'
+                );
             } else if (carrying) {
-                const rel = relationToWorldObject(controller, releaseZone, releaseWorld);
-                if (insideBox(rel, 0.70, 0.70, 0.70)) {
-                    place(elapsed, controller, visualY, angle, gain);
-                }
+                place(elapsed, controller, visualY, angle, gain);
+                setHud(
+                    'Bord geplaatst.\n' +
+                    'Ga naar het volgende bord\n' +
+                    'en druk op de trigger om het te pakken.'
+                );
             }
         }
     }
@@ -389,36 +402,18 @@
                 cfg.releaseHalfZ
             );
 
-            updateZoneVisuals(pickupDistance, releaseDistance);
-
-            // Nieuw: automatisch pakken zodra de ECHTE controller ruimtelijk
-            // binnen de grijpzone rond het bord komt.
-            if (!carrying &&
-                !waitingRespawn &&
-                pickupInside) {
-                pickup(elapsed, controller, visualY, angle, gain);
-            }
-
-            if (carrying &&
-                releaseInside) {
-                place(elapsed, controller, visualY, angle, gain);
-            }
+            // De ruimtelijke afstanden worden nog berekend voor debug/logische
+            // controle, maar bepalen het pakken/neerzetten niet meer.
+            pickupZone.setAttribute('visible', false);
+            releaseZone.setAttribute('visible', false);
 
             let taskLine;
             if (carrying) {
-                taskLine =
-                    (releaseInside ? 'PLAATSZONE BEREIKT - ' : '') +
-                    'plank dX ' + Math.round(releaseRel.dx * 100) +
-                    ' dY ' + Math.round(releaseRel.dy * 100) +
-                    ' dZ ' + Math.round(releaseRel.dz * 100) + ' cm';
+                taskLine = 'Bord vast: raak de plank aan en druk trigger';
             } else if (waitingRespawn) {
                 taskLine = 'Nieuw bord komt eraan...';
             } else {
-                taskLine =
-                    (pickupInside ? 'GRIJPZONE BEREIKT - ' : '') +
-                    'bord dX ' + Math.round(pickupRel.dx * 100) +
-                    ' dY ' + Math.round(pickupRel.dy * 100) +
-                    ' dZ ' + Math.round(pickupRel.dz * 100) + ' cm';
+                taskLine = 'Raak bord aan en druk trigger';
             }
 
             setHud(
