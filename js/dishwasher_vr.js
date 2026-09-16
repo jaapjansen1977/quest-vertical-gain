@@ -6,6 +6,8 @@
     const waitingPlate = document.querySelector('#waitingPlate');
     const carriedPlate = document.querySelector('#carriedPlate3D');
     const placedPlates = document.querySelector('#placedPlates');
+    const pickupZone = document.querySelector('#pickupZone');
+    const releaseZone = document.querySelector('#releaseZone');
     const hudText = document.querySelector('#hudText');
     const statusText = document.querySelector('#statusText');
     const detailText = document.querySelector('#detailText');
@@ -35,9 +37,6 @@
         return cfg.gainSchedule[cfg.gainSchedule.length - 1].gain;
     }
 
-    // Zelfde pose-uitlezing als in quest_controller_debug.html:
-    // de A-Frame controllerentity wordt door WebXR bijgewerkt en we lezen
-    // vervolgens zijn wereldpositie uit.
     function getRightControllerPose() {
         if (!scene.is('vr-mode')) return null;
         if (!rightController || !rightController.object3D) return null;
@@ -57,6 +56,13 @@
         };
     }
 
+    function distanceToPoint(controller, point) {
+        const dx = controller.x - point.x;
+        const dy = controller.y - point.y;
+        const dz = controller.z - point.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
     function armElevationDeg(controller) {
         if (!shoulder || !controller) return null;
 
@@ -71,7 +77,6 @@
         vy /= len;
         vz /= len;
 
-        // 0 deg = arm omlaag, 90 = horizontaal, 180 = recht omhoog.
         const dotDown = Math.max(-1, Math.min(1, -vy));
         return Math.acos(dotDown) * 180 / Math.PI;
     }
@@ -123,11 +128,13 @@
 
         waitingPlate.setAttribute('visible', true);
         carriedPlate.setAttribute('visible', false);
+        pickupZone.setAttribute('visible', true);
+        releaseZone.setAttribute('visible', false);
 
         setHud(
             'Experiment loopt.\n' +
-            'Beweeg omlaag om een bord te pakken\n' +
-            'en omhoog om het op de plank te zetten.'
+            'Beweeg naar het bord in de groene zone.\n' +
+            'Het bord wordt automatisch gepakt.'
         );
     }
 
@@ -135,6 +142,8 @@
         carrying = true;
         waitingPlate.setAttribute('visible', false);
         carriedPlate.setAttribute('visible', true);
+        pickupZone.setAttribute('visible', false);
+        releaseZone.setAttribute('visible', true);
 
         window.DishwasherVRData.add({
             event: 'pickup',
@@ -157,6 +166,7 @@
         carrying = false;
         placedCount++;
         carriedPlate.setAttribute('visible', false);
+        releaseZone.setAttribute('visible', false);
 
         const plate = document.createElement('a-cylinder');
         plate.setAttribute('radius', 0.15);
@@ -190,6 +200,7 @@
 
         setTimeout(function () {
             waitingPlate.setAttribute('visible', true);
+            pickupZone.setAttribute('visible', true);
             waitingRespawn = false;
         }, cfg.respawnDelayMs);
     }
@@ -197,6 +208,8 @@
     function stopExperiment() {
         phase = 'FINISHED';
         saveButton.disabled = false;
+        pickupZone.setAttribute('visible', false);
+        releaseZone.setAttribute('visible', false);
         setHud('Klaar. Verlaat VR om de CSV op te slaan.');
     }
 
@@ -215,7 +228,6 @@
         }
     }
 
-    // Dit event werkte ook in de controller-debugtest.
     rightController.addEventListener('triggerdown', handleTrigger);
 
     rightController.addEventListener('controllerconnected', function () {
@@ -244,6 +256,20 @@
     });
 
     saveButton.addEventListener('click', window.DishwasherVRData.saveCSV);
+
+    function updateZoneVisuals(pickupDistance, releaseDistance) {
+        if (!carrying && !waitingRespawn) {
+            const near = pickupDistance <= cfg.pickupNearRadius;
+            pickupZone.setAttribute('opacity', near ? 0.34 : 0.16);
+            pickupZone.setAttribute('color', near ? '#74ff8c' : '#4fc46a');
+        }
+
+        if (carrying) {
+            const near = releaseDistance <= cfg.releaseNearRadius;
+            releaseZone.setAttribute('opacity', near ? 0.34 : 0.12);
+            releaseZone.setAttribute('color', near ? '#74ff8c' : '#4fc46a');
+        }
+    }
 
     function animate() {
         const controller = getRightControllerPose();
@@ -280,8 +306,8 @@
                 )
             );
 
-            // Alleen verticale visuele beweging:
-            // X en Z blijven op de tijdens de start opgeslagen positie.
+            // De visuele hand houdt X en Z op de startpositie.
+            // Alleen de verticale uitslag wordt gemanipuleerd.
             vrHand.object3D.position.set(startHand.x, visualY, startHand.z);
             carriedPlate.object3D.position.set(
                 startHand.x,
@@ -290,22 +316,43 @@
             );
 
             const angle = armElevationDeg(controller);
-            const pickupThreshold = startHand.y + cfg.pickupOffsetY;
-            const releaseThreshold = startHand.y + cfg.releaseOffsetY;
+            const pickupDistance = distanceToPoint(controller, cfg.pickupPoint);
+            const releaseDistance = distanceToPoint(controller, cfg.releasePoint);
 
-            // Succescriteria blijven gebaseerd op de WERKELIJKE controller-Y.
-            if (!carrying && !waitingRespawn && realY <= pickupThreshold) {
+            updateZoneVisuals(pickupDistance, releaseDistance);
+
+            // Nieuw: automatisch pakken zodra de ECHTE controller ruimtelijk
+            // binnen de grijpzone rond het bord komt.
+            if (!carrying &&
+                !waitingRespawn &&
+                pickupDistance <= cfg.pickupRadius) {
                 pickup(elapsed, controller, visualY, angle, gain);
             }
 
-            if (carrying && realY >= releaseThreshold) {
+            // Nieuw: bord pas neerzetten als de ECHTE controller daadwerkelijk
+            // in de plaatsingszone boven de plank komt.
+            if (carrying &&
+                releaseDistance <= cfg.releaseRadius) {
                 place(elapsed, controller, visualY, angle, gain);
+            }
+
+            let taskLine;
+            if (carrying) {
+                taskLine =
+                    'Naar plank: ' + Math.round(releaseDistance * 100) +
+                    ' cm';
+            } else if (waitingRespawn) {
+                taskLine = 'Nieuw bord komt eraan...';
+            } else {
+                taskLine =
+                    'Naar bord: ' + Math.round(pickupDistance * 100) +
+                    ' cm';
             }
 
             setHud(
                 'Experiment loopt\n' +
                 'Tijd ' + elapsed.toFixed(1) + ' / 120 s   Gain ' + gain.toFixed(2) + '\n' +
-                'Borden geplaatst: ' + placedCount
+                taskLine + '   |   Borden: ' + placedCount
             );
 
             if (now - lastLog >= 33) {
