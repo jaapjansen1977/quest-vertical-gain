@@ -58,19 +58,31 @@
         };
     }
 
-    function distanceToWorldObject(controller, element, tempVector) {
-        if (!element || !element.object3D) return Infinity;
+    function relationToWorldObject(controller, element, tempVector) {
+        if (!element || !element.object3D) {
+            return { dx: Infinity, dy: Infinity, dz: Infinity, distance: Infinity };
+        }
 
-        // Belangrijk: gebruik de WERKELIJKE wereldpositie van het zichtbare
-        // object. Zo zitten controller en bord altijd in exact hetzelfde
-        // coordinatenstelsel, ook als WebXR de camera/origin verschuift.
+        // Forceer de matrix-update voordat we de wereldpositie uitlezen.
+        scene.object3D.updateMatrixWorld(true);
         element.object3D.getWorldPosition(tempVector);
 
         const dx = controller.x - tempVector.x;
         const dy = controller.y - tempVector.y;
         const dz = controller.z - tempVector.z;
 
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        return {
+            dx: dx,
+            dy: dy,
+            dz: dz,
+            distance: Math.sqrt(dx * dx + dy * dy + dz * dz)
+        };
+    }
+
+    function insideBox(rel, halfX, halfY, halfZ) {
+        return Math.abs(rel.dx) <= halfX &&
+               Math.abs(rel.dy) <= halfY &&
+               Math.abs(rel.dz) <= halfZ;
     }
 
     function armElevationDeg(controller) {
@@ -235,6 +247,26 @@
             captureShoulder(controller);
         } else if (phase === 'WAIT_START') {
             startExperiment(controller);
+        } else if (phase === 'RUNNING') {
+            const now = performance.now();
+            const elapsed = (now - startTime) / 1000;
+            const gain = getGain(elapsed);
+            const visualY = startHand.y + gain * (controller.y - startHand.y);
+            const angle = armElevationDeg(controller);
+
+            // Tijdelijke robuuste fallback voor testen:
+            // trigger pakt/neerzet alleen wanneer je redelijk in de buurt bent.
+            if (!carrying && !waitingRespawn) {
+                const rel = relationToWorldObject(controller, waitingPlate, pickupWorld);
+                if (insideBox(rel, 0.70, 0.70, 0.70)) {
+                    pickup(elapsed, controller, visualY, angle, gain);
+                }
+            } else if (carrying) {
+                const rel = relationToWorldObject(controller, releaseZone, releaseWorld);
+                if (insideBox(rel, 0.70, 0.70, 0.70)) {
+                    place(elapsed, controller, visualY, angle, gain);
+                }
+            }
         }
     }
 
@@ -329,15 +361,32 @@
 
             // Afstand wordt nu berekend tot de echte zichtbare objecten in de
             // scene, niet tot hard-coded coordinaten uit de config.
-            const pickupDistance = distanceToWorldObject(
+            const pickupRel = relationToWorldObject(
                 controller,
                 waitingPlate,
                 pickupWorld
             );
-            const releaseDistance = distanceToWorldObject(
+            const releaseRel = relationToWorldObject(
                 controller,
                 releaseZone,
                 releaseWorld
+            );
+
+            const pickupDistance = pickupRel.distance;
+            const releaseDistance = releaseRel.distance;
+
+            const pickupInside = insideBox(
+                pickupRel,
+                cfg.pickupHalfX,
+                cfg.pickupHalfY,
+                cfg.pickupHalfZ
+            );
+
+            const releaseInside = insideBox(
+                releaseRel,
+                cfg.releaseHalfX,
+                cfg.releaseHalfY,
+                cfg.releaseHalfZ
             );
 
             updateZoneVisuals(pickupDistance, releaseDistance);
@@ -346,28 +395,30 @@
             // binnen de grijpzone rond het bord komt.
             if (!carrying &&
                 !waitingRespawn &&
-                pickupDistance <= cfg.pickupRadius) {
+                pickupInside) {
                 pickup(elapsed, controller, visualY, angle, gain);
             }
 
-            // Nieuw: bord pas neerzetten als de ECHTE controller daadwerkelijk
-            // in de plaatsingszone boven de plank komt.
             if (carrying &&
-                releaseDistance <= cfg.releaseRadius) {
+                releaseInside) {
                 place(elapsed, controller, visualY, angle, gain);
             }
 
             let taskLine;
             if (carrying) {
                 taskLine =
-                    (releaseDistance <= cfg.releaseRadius ? 'PLAATSZONE BEREIKT - ' : '') +
-                    'Naar plank: ' + Math.round(releaseDistance * 100) + ' cm';
+                    (releaseInside ? 'PLAATSZONE BEREIKT - ' : '') +
+                    'plank dX ' + Math.round(releaseRel.dx * 100) +
+                    ' dY ' + Math.round(releaseRel.dy * 100) +
+                    ' dZ ' + Math.round(releaseRel.dz * 100) + ' cm';
             } else if (waitingRespawn) {
                 taskLine = 'Nieuw bord komt eraan...';
             } else {
                 taskLine =
-                    (pickupDistance <= cfg.pickupRadius ? 'GRIJPZONE BEREIKT - ' : '') +
-                    'Naar bord: ' + Math.round(pickupDistance * 100) + ' cm';
+                    (pickupInside ? 'GRIJPZONE BEREIKT - ' : '') +
+                    'bord dX ' + Math.round(pickupRel.dx * 100) +
+                    ' dY ' + Math.round(pickupRel.dy * 100) +
+                    ' dZ ' + Math.round(pickupRel.dz * 100) + ' cm';
             }
 
             setHud(
