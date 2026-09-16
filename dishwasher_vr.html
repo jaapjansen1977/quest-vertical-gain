@@ -34,9 +34,29 @@
         <a-cylinder radius="0.17" height="0.025" rotation="90 0 0" color="#f8f8f3"></a-cylinder>
     </a-entity>
 
+    <!-- Zichtbare grijpzone rond het bord. Groen = dichtbij genoeg om te pakken. -->
+    <a-sphere
+        id="pickupZone"
+        position="0 0.58 -1.12"
+        radius="0.22"
+        color="#4fc46a"
+        opacity="0.16"
+        transparent="true">
+    </a-sphere>
+
     <!-- Plank boven -->
     <a-box position="0 2.12 -1.5" width="2.2" height="0.08" depth="0.45" color="#9b7657"></a-box>
     <a-entity id="placedPlates" position="0 2.18 -1.30"></a-entity>
+
+    <!-- Plaatsingszone boven de plank. -->
+    <a-sphere
+        id="releaseZone"
+        position="0 2.20 -1.30"
+        radius="0.24"
+        color="#4fc46a"
+        opacity="0.12"
+        transparent="true">
+    </a-sphere>
 
     <!-- Rechter Quest-controller: zelfde A-Frame posebron als in de werkende debugtest. -->
     <a-entity id="rightController" laser-controls="hand: right"></a-entity>
@@ -55,8 +75,8 @@
     </a-camera>
 </a-scene>
 
-<script src="js/dishwasher_vr_config.js?v=2"></script>
-<script src="js/dishwasher_vr_logging.js?v=2"></script>
-<script src="js/dishwasher_vr.js?v=2"></script>
+<script src="js/dishwasher_vr_config.js?v=3"></script>
+<script src="js/dishwasher_vr_logging.js?v=3"></script>
+<script src="js/dishwasher_vr.js?v=3"></script>
 </body>
 </html>
