@@ -16,12 +16,12 @@ window.DISHWASHER_VR_CONFIG = {
     // Interactie gebeurt nu ruimtelijk: de echte controller moet in de
     // grijp-/plaatsingszone komen. De gain bepaalt alleen de VISUELE Y.
     pickupPoint: { x: 0.0, y: 0.58, z: -1.12 },
-    pickupRadius: 0.22,
-    pickupNearRadius: 0.38,
+    pickupRadius: 0.35,
+    pickupNearRadius: 0.50,
 
     releasePoint: { x: 0.0, y: 2.20, z: -1.30 },
-    releaseRadius: 0.24,
-    releaseNearRadius: 0.42,
+    releaseRadius: 0.35,
+    releaseNearRadius: 0.50,
 
     plateZ: -1.15,
     handZ: -1.05,
