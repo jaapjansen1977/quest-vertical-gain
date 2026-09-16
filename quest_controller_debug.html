@@ -5,10 +5,93 @@
     <title>Quest Controller Position Test</title>
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
 </head>
-
 <body>
 
-<a-scene id="scene" background="color: #20364a">
+<script>
+AFRAME.registerComponent('controller-pose-debug', {
+    init: function () {
+        this.scene = this.el;
+        this.leftController = document.querySelector('#leftController');
+        this.rightController = document.querySelector('#rightController');
+        this.leftMarker = document.querySelector('#leftMarker');
+        this.rightMarker = document.querySelector('#rightMarker');
+        this.leftText = document.querySelector('#leftText');
+        this.rightText = document.querySelector('#rightText');
+        this.statusText = document.querySelector('#statusText');
+        this.lastLeft = null;
+        this.lastRight = null;
+        this.tmp = new THREE.Vector3();
+
+        this.scene.addEventListener('enter-vr', () => {
+            this.statusText.setAttribute('value', 'VR gestart. Controllerposities uitlezen...');
+        });
+    },
+
+    fmt: function (v) {
+        return Number(v).toFixed(3);
+    },
+
+    updateFromObject3D: function (hand, controller, marker, textEl, previous) {
+        if (!controller || !controller.object3D) return previous;
+
+        controller.object3D.getWorldPosition(this.tmp);
+        const p = { x: this.tmp.x, y: this.tmp.y, z: this.tmp.z };
+
+        marker.setAttribute('visible', true);
+        marker.object3D.position.set(p.x, p.y, p.z);
+
+        let dText = '';
+        if (previous) {
+            const dx = p.x - previous.x;
+            const dy = p.y - previous.y;
+            const dz = p.z - previous.z;
+            const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            dText = '\nd=' + this.fmt(d);
+        }
+
+        textEl.setAttribute(
+            'value',
+            hand.toUpperCase() +
+            ' [A-Frame world pose]' +
+            '\nx=' + this.fmt(p.x) +
+            '  y=' + this.fmt(p.y) +
+            '  z=' + this.fmt(p.z) +
+            dText
+        );
+
+        return p;
+    },
+
+    tick: function () {
+        if (!this.scene.is('vr-mode')) return;
+
+        this.lastLeft = this.updateFromObject3D(
+            'left',
+            this.leftController,
+            this.leftMarker,
+            this.leftText,
+            this.lastLeft
+        );
+
+        this.lastRight = this.updateFromObject3D(
+            'right',
+            this.rightController,
+            this.rightMarker,
+            this.rightText,
+            this.lastRight
+        );
+
+        if (this.lastLeft || this.lastRight) {
+            this.statusText.setAttribute(
+                'value',
+                'Posities worden ontvangen. Test nu x, y en z door de controllers te bewegen.'
+            );
+        }
+    }
+});
+</script>
+
+<a-scene id="scene" controller-pose-debug background="color: #20364a">
 
     <a-plane
         position="0 0 -3"
@@ -18,7 +101,6 @@
         color="#557755">
     </a-plane>
 
-    <!-- Referentieobject -->
     <a-box
         position="0 1.4 -2.5"
         width="0.25"
@@ -27,16 +109,13 @@
         color="#d94b4b">
     </a-box>
 
-    <!-- A-Frame controller entities blijven aanwezig voor trigger-events -->
     <a-entity id="leftController" laser-controls="hand: left"></a-entity>
     <a-entity id="rightController" laser-controls="hand: right"></a-entity>
 
-    <!-- Markers die rechtstreeks uit raw WebXR worden aangestuurd -->
     <a-sphere id="leftMarker" radius="0.09" color="#4da6ff" visible="false"></a-sphere>
     <a-sphere id="rightMarker" radius="0.09" color="#ffd84d" visible="false"></a-sphere>
 
     <a-text
-        id="titleText"
         value="Controller position test"
         position="0 2.45 -2.4"
         align="center"
@@ -75,119 +154,7 @@
 </a-scene>
 
 <script>
-const scene = document.querySelector('#scene');
-const leftMarker = document.querySelector('#leftMarker');
-const rightMarker = document.querySelector('#rightMarker');
-const leftText = document.querySelector('#leftText');
-const rightText = document.querySelector('#rightText');
 const statusText = document.querySelector('#statusText');
-
-let lastLeft = null;
-let lastRight = null;
-
-function fmt(v) {
-    return v.toFixed(3);
-}
-
-function setMarker(marker, pose) {
-    const p = pose.transform.position;
-    marker.setAttribute('visible', true);
-    marker.object3D.position.set(p.x, p.y, p.z);
-}
-
-function getPoseForInput(frame, refSpace, inputSource) {
-    const space = inputSource.gripSpace || inputSource.targetRaySpace;
-    if (!space) return null;
-    return frame.getPose(space, refSpace);
-}
-
-function controllerLine(label, pose, previous) {
-    const p = pose.transform.position;
-
-    let movement = '';
-    if (previous) {
-        const dx = p.x - previous.x;
-        const dy = p.y - previous.y;
-        const dz = p.z - previous.z;
-        const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        movement = '  d=' + fmt(d);
-    }
-
-    return label +
-        '\nx=' + fmt(p.x) +
-        '  y=' + fmt(p.y) +
-        '  z=' + fmt(p.z) +
-        movement;
-}
-
-function animate() {
-    if (scene.renderer && scene.renderer.xr && scene.renderer.xr.isPresenting) {
-        const xr = scene.renderer.xr;
-        const frame = xr.getFrame();
-        const refSpace = xr.getReferenceSpace();
-        const session = xr.getSession();
-
-        if (frame && refSpace && session) {
-            let leftFound = false;
-            let rightFound = false;
-
-            for (const inputSource of session.inputSources) {
-                if (!inputSource.handedness) continue;
-
-                const pose = getPoseForInput(frame, refSpace, inputSource);
-                if (!pose) continue;
-
-                const p = pose.transform.position;
-
-                if (inputSource.handedness === 'left') {
-                    leftFound = true;
-                    setMarker(leftMarker, pose);
-                    leftText.setAttribute(
-                        'value',
-                        controllerLine('LEFT', pose, lastLeft)
-                    );
-                    lastLeft = { x: p.x, y: p.y, z: p.z };
-                }
-
-                if (inputSource.handedness === 'right') {
-                    rightFound = true;
-                    setMarker(rightMarker, pose);
-                    rightText.setAttribute(
-                        'value',
-                        controllerLine('RIGHT', pose, lastRight)
-                    );
-                    lastRight = { x: p.x, y: p.y, z: p.z };
-                }
-            }
-
-            if (leftFound || rightFound) {
-                statusText.setAttribute(
-                    'value',
-                    'Raw WebXR pose ontvangen. Beweeg controllers omhoog/omlaag en links/rechts.'
-                );
-            } else {
-                statusText.setAttribute(
-                    'value',
-                    'VR actief, maar nog geen controllerpose ontvangen.'
-                );
-            }
-
-            if (!leftFound) leftMarker.setAttribute('visible', false);
-            if (!rightFound) rightMarker.setAttribute('visible', false);
-        }
-    } else {
-        statusText.setAttribute(
-            'value',
-            'Ga naar VR en beweeg beide controllers.'
-        );
-    }
-
-    requestAnimationFrame(animate);
-}
-
-scene.addEventListener('enter-vr', function () {
-    statusText.setAttribute('value', 'VR gestart. Controllers zoeken...');
-});
 
 document.querySelector('#leftController').addEventListener('triggerdown', function () {
     statusText.setAttribute('value', 'LEFT trigger ontvangen');
@@ -196,8 +163,6 @@ document.querySelector('#leftController').addEventListener('triggerdown', functi
 document.querySelector('#rightController').addEventListener('triggerdown', function () {
     statusText.setAttribute('value', 'RIGHT trigger ontvangen');
 });
-
-animate();
 </script>
 
 </body>
