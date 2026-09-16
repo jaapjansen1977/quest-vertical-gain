@@ -6,6 +6,7 @@
     const waitingPlate = document.querySelector('#waitingPlate');
     const carriedPlate = document.querySelector('#carriedPlate3D');
     const placedPlates = document.querySelector('#placedPlates');
+    const shelf = document.querySelector('#shelf');
     const pickupZone = document.querySelector('#pickupZone');
     const releaseZone = document.querySelector('#releaseZone');
     const hudText = document.querySelector('#hudText');
@@ -122,6 +123,13 @@
             visual_y: '',
             arm_elevation_deg: 0
         });
+
+        // Zet de plank op een persoonsafhankelijke hoogte in plaats van op
+        // een absolute wereldhoogte van 2.12 m.
+        const shelfY = shoulder.y + cfg.shelfOffsetFromShoulderY;
+        shelf.object3D.position.y = shelfY;
+        placedPlates.object3D.position.y = shelfY + 0.06;
+        releaseZone.object3D.position.y = shelfY + 0.08;
 
         phase = 'WAIT_START';
 
@@ -361,13 +369,14 @@
                 )
             );
 
-            // De visuele hand houdt X en Z op de startpositie.
-            // Alleen de verticale uitslag wordt gemanipuleerd.
-            vrHand.object3D.position.set(startHand.x, visualY, startHand.z);
+            // Alleen Y krijgt de gain-manipulatie.
+            // X en Z volgen de echte controller zodat de hand en het gedragen
+            // bord daadwerkelijk met je fysieke hand meegaan.
+            vrHand.object3D.position.set(controller.x, visualY, controller.z);
             carriedPlate.object3D.position.set(
-                startHand.x,
+                controller.x,
                 visualY - 0.04,
-                startHand.z - 0.02
+                controller.z - 0.02
             );
 
             const angle = armElevationDeg(controller);
