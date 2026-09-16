@@ -13,8 +13,8 @@ window.DISHWASHER_VR_CONFIG = {
     minVisualY: 0.35,
     maxVisualY: 2.8,
 
-    // Interactie gebeurt nu ruimtelijk: de echte controller moet in de
-    // grijp-/plaatsingszone komen. De gain bepaalt alleen de VISUELE Y.
+    // De trigger bepaalt nu pakken en loslaten.
+    // Deze ruimtelijke waarden blijven alleen beschikbaar voor debug/latere analyse.
     pickupPoint: { x: 0.0, y: 0.58, z: -1.12 },
     pickupRadius: 0.35,
     pickupNearRadius: 0.50,
