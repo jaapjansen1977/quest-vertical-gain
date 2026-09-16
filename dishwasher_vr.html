@@ -13,7 +13,7 @@
 </head>
 <body>
 <div id="panel">
-    <div><strong>Borden uitruimen - VR</strong></div>
+    <div><strong>Borden uitruimen - VR</strong> <span style="opacity:.7">v8</span></div>
     <div id="statusText">Klik eerst op VR. Daarna volgt de schouderkalibratie.</div>
     <div id="detailText">Nog geen schouderpunt opgeslagen.</div>
     <button id="saveButton" disabled>CSV opslaan</button>
@@ -66,7 +66,8 @@
     <!-- Eigen visuele handproxy. De echte controller wordt alleen als input gebruikt. -->
     <a-sphere id="vrHand" radius="0.075" color="#c88b62" position="0 1.4 -1.05"></a-sphere>
     <a-entity id="carriedPlate3D" visible="false" position="0 1.35 -1.07">
-        <a-cylinder radius="0.16" height="0.025" rotation="90 0 0" color="#f8f8f3"></a-cylinder>
+        <a-cylinder radius="0.19" height="0.035" rotation="90 0 0" color="#fff6d5"></a-cylinder>
+        <a-torus radius="0.19" radius-tubular="0.012" rotation="90 0 0" color="#d6b85f"></a-torus>
     </a-entity>
 
     <a-camera id="camera" position="0 1.6 0">
@@ -77,8 +78,8 @@
     </a-camera>
 </a-scene>
 
-<script src="js/dishwasher_vr_config.js?v=7"></script>
-<script src="js/dishwasher_vr_logging.js?v=7"></script>
-<script src="js/dishwasher_vr.js?v=7"></script>
+<script src="js/dishwasher_vr_config.js?v=8"></script>
+<script src="js/dishwasher_vr_logging.js?v=8"></script>
+<script src="js/dishwasher_vr.js?v=8"></script>
 </body>
 </html>
