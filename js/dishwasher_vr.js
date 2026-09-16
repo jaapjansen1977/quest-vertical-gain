@@ -24,6 +24,8 @@
     let waitingRespawn = false;
 
     const controllerWorld = new THREE.Vector3();
+    const pickupWorld = new THREE.Vector3();
+    const releaseWorld = new THREE.Vector3();
 
     function setHud(text) {
         hudText.setAttribute('value', text);
@@ -56,10 +58,18 @@
         };
     }
 
-    function distanceToPoint(controller, point) {
-        const dx = controller.x - point.x;
-        const dy = controller.y - point.y;
-        const dz = controller.z - point.z;
+    function distanceToWorldObject(controller, element, tempVector) {
+        if (!element || !element.object3D) return Infinity;
+
+        // Belangrijk: gebruik de WERKELIJKE wereldpositie van het zichtbare
+        // object. Zo zitten controller en bord altijd in exact hetzelfde
+        // coordinatenstelsel, ook als WebXR de camera/origin verschuift.
+        element.object3D.getWorldPosition(tempVector);
+
+        const dx = controller.x - tempVector.x;
+        const dy = controller.y - tempVector.y;
+        const dz = controller.z - tempVector.z;
+
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
@@ -316,8 +326,19 @@
             );
 
             const angle = armElevationDeg(controller);
-            const pickupDistance = distanceToPoint(controller, cfg.pickupPoint);
-            const releaseDistance = distanceToPoint(controller, cfg.releasePoint);
+
+            // Afstand wordt nu berekend tot de echte zichtbare objecten in de
+            // scene, niet tot hard-coded coordinaten uit de config.
+            const pickupDistance = distanceToWorldObject(
+                controller,
+                waitingPlate,
+                pickupWorld
+            );
+            const releaseDistance = distanceToWorldObject(
+                controller,
+                releaseZone,
+                releaseWorld
+            );
 
             updateZoneVisuals(pickupDistance, releaseDistance);
 
@@ -339,14 +360,14 @@
             let taskLine;
             if (carrying) {
                 taskLine =
-                    'Naar plank: ' + Math.round(releaseDistance * 100) +
-                    ' cm';
+                    (releaseDistance <= cfg.releaseRadius ? 'PLAATSZONE BEREIKT - ' : '') +
+                    'Naar plank: ' + Math.round(releaseDistance * 100) + ' cm';
             } else if (waitingRespawn) {
                 taskLine = 'Nieuw bord komt eraan...';
             } else {
                 taskLine =
-                    'Naar bord: ' + Math.round(pickupDistance * 100) +
-                    ' cm';
+                    (pickupDistance <= cfg.pickupRadius ? 'GRIJPZONE BEREIKT - ' : '') +
+                    'Naar bord: ' + Math.round(pickupDistance * 100) + ' cm';
             }
 
             setHud(
