@@ -33,6 +33,10 @@ window.DISHWASHER_VR_CONFIG = {
     releaseHalfY: 0.35,
     releaseHalfZ: 0.45,
 
+    // Plankhoogte wordt na schouderkalibratie relatief ingesteld.
+    // 0.25 m boven het opgeslagen schouderpunt is een eerste testwaarde.
+    shelfOffsetFromShoulderY: 0.25,
+
     plateZ: -1.15,
     handZ: -1.05,
     respawnDelayMs: 450
