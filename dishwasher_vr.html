@@ -38,6 +38,9 @@
     <a-box position="0 2.12 -1.5" width="2.2" height="0.08" depth="0.45" color="#9b7657"></a-box>
     <a-entity id="placedPlates" position="0 2.18 -1.30"></a-entity>
 
+    <!-- Rechter Quest-controller: zelfde A-Frame posebron als in de werkende debugtest. -->
+    <a-entity id="rightController" laser-controls="hand: right"></a-entity>
+
     <!-- Eigen visuele handproxy. De echte controller wordt alleen als input gebruikt. -->
     <a-sphere id="vrHand" radius="0.075" color="#c88b62" position="0 1.4 -1.05"></a-sphere>
     <a-entity id="carriedPlate3D" visible="false" position="0 1.35 -1.07">
@@ -52,8 +55,8 @@
     </a-camera>
 </a-scene>
 
-<script src="js/dishwasher_vr_config.js?v=1"></script>
-<script src="js/dishwasher_vr_logging.js?v=1"></script>
-<script src="js/dishwasher_vr.js?v=1"></script>
+<script src="js/dishwasher_vr_config.js?v=2"></script>
+<script src="js/dishwasher_vr_logging.js?v=2"></script>
+<script src="js/dishwasher_vr.js?v=2"></script>
 </body>
 </html>
