@@ -127,9 +127,12 @@
         // Zet de plank op een persoonsafhankelijke hoogte in plaats van op
         // een absolute wereldhoogte van 2.12 m.
         const shelfY = shoulder.y + cfg.shelfOffsetFromShoulderY;
-        shelf.object3D.position.y = shelfY;
-        placedPlates.object3D.position.y = shelfY + 0.06;
-        releaseZone.object3D.position.y = shelfY + 0.08;
+
+        // Gebruik A-Frame attributes zodat de gewijzigde positie niet door
+        // component-updates wordt teruggezet.
+        shelf.setAttribute('position', '0 ' + shelfY.toFixed(3) + ' -1.5');
+        placedPlates.setAttribute('position', '0 ' + (shelfY + 0.06).toFixed(3) + ' -1.30');
+        releaseZone.setAttribute('position', '0 ' + (shelfY + 0.08).toFixed(3) + ' -1.30');
 
         phase = 'WAIT_START';
 
@@ -140,9 +143,8 @@
         );
 
         detailText.textContent =
-            'Schouder: x ' + shoulder.x.toFixed(3) +
-            ', y ' + shoulder.y.toFixed(3) +
-            ', z ' + shoulder.z.toFixed(3);
+            'v8 | Schouder y ' + shoulder.y.toFixed(3) +
+            ' | plank y ' + shelfY.toFixed(3);
     }
 
     function startExperiment(controller) {
@@ -170,8 +172,16 @@
 
     function pickup(elapsed, controller, visualY, angle, gain) {
         carrying = true;
-        waitingPlate.setAttribute('visible', false);
+
+        // Zet het gedragen bord EERST op de actuele visuele handpositie en
+        // maak het daarna zichtbaar. Dit voorkomt een frame op de oude plek.
+        carriedPlate.object3D.position.set(
+            controller.x,
+            visualY - 0.02,
+            controller.z - 0.14
+        );
         carriedPlate.setAttribute('visible', true);
+        waitingPlate.setAttribute('visible', false);
         pickupZone.setAttribute('visible', false);
         releaseZone.setAttribute('visible', false);
 
@@ -205,7 +215,7 @@
         plate.setAttribute('rotation', '90 0 0');
         plate.setAttribute(
             'position',
-            (((placedCount - 1) % 6 - 2.5) * 0.12) + ' 0 0'
+            (((placedCount - 1) % 6 - 2.5) * 0.12) + ' 0.02 0'
         );
         placedPlates.appendChild(plate);
 
@@ -375,8 +385,8 @@
             vrHand.object3D.position.set(controller.x, visualY, controller.z);
             carriedPlate.object3D.position.set(
                 controller.x,
-                visualY - 0.04,
-                controller.z - 0.02
+                visualY - 0.02,
+                controller.z - 0.14
             );
 
             const angle = armElevationDeg(controller);
@@ -426,7 +436,7 @@
             }
 
             setHud(
-                'Experiment loopt\n' +
+                'v8 | Experiment loopt\n' +
                 'Tijd ' + elapsed.toFixed(1) + ' / 120 s   Gain ' + gain.toFixed(2) + '\n' +
                 taskLine + '   |   Borden: ' + placedCount
             );
