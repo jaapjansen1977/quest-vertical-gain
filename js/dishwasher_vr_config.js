@@ -23,6 +23,16 @@ window.DISHWASHER_VR_CONFIG = {
     releaseRadius: 0.35,
     releaseNearRadius: 0.50,
 
+    // Robuuste 3D-interactiezones (halve afmetingen, in meter).
+    // Deze zijn bewust wat ruimer voor de eerste Quest-test.
+    pickupHalfX: 0.45,
+    pickupHalfY: 0.35,
+    pickupHalfZ: 0.45,
+
+    releaseHalfX: 0.45,
+    releaseHalfY: 0.35,
+    releaseHalfZ: 0.45,
+
     plateZ: -1.15,
     handZ: -1.05,
     respawnDelayMs: 450
